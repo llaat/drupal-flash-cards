@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drupal 10 / 11 Concept Flashcards</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">D</span>
+        <div>
+          <h1 class="brand-title">Drupal Concept Flashcards</h1>
+          <p class="brand-subtitle">Drupal 10 &amp; 11 backend judgment &amp; architecture</p>
+        </div>
+      </div>
+
+      <div class="status-cluster" aria-live="polite">
+        <div class="stat-pill" title="Lifetime score (+1 correct, -1 wrong, minimum 0)">
+          <span class="stat-label">Score</span>
+          <span class="stat-value" id="header-score">0</span>
+        </div>
+        <div class="stat-pill" title="Highest question difficulty included in new rounds">
+          <span class="stat-label">Pool</span>
+          <span class="stat-value" id="header-ceiling">Level 1</span>
+        </div>
+      </div>
+    </header>
+
+    <div id="validation-banner" class="validation-banner" role="alert" hidden></div>
+
+    <main class="main-column">
+      <!-- Start Screen -->
+      <section id="screen-start" class="card screen">
+        <div class="hero-header">
+          <p class="eyebrow">5-Question Study Rounds</p>
+          <h2 class="screen-title">Practice the <em>why</em> behind Drupal</h2>
+          <p class="lead">
+            Each round draws five concept questions up to your current difficulty ceiling.
+            Answer choices shuffle every time, hints give context without penalty, and wrong answers
+            explain the underlying architecture so the mental model sticks.
+          </p>
+        </div>
+
+        <div class="score-overview">
+          <div class="overview-box">
+            <span class="overview-label">Lifetime Score</span>
+            <strong class="overview-number" id="start-score">0</strong>
+            <span class="overview-caption">+1 right &middot; &minus;1 wrong (min 0)</span>
+          </div>
+          <div class="overview-box">
+            <span class="overview-label">Unlocked Difficulty</span>
+            <strong class="overview-number" id="start-ceiling">Level 1</strong>
+            <span class="overview-caption" id="start-pool-count">0 questions unlocked</span>
+          </div>
+        </div>
+
+        <div class="ladder-box" aria-label="Difficulty unlock thresholds">
+          <div class="ladder-header">
+            <span class="ladder-title">Difficulty ladder</span>
+            <span class="ladder-next" id="start-next-unlock">Reach score 10 to unlock Level 2</span>
+          </div>
+          <ol class="ladder-steps" id="ladder-steps">
+            <li data-level="1"><span>0&ndash;9</span><strong>L1</strong></li>
+            <li data-level="2"><span>10&ndash;24</span><strong>L1&ndash;2</strong></li>
+            <li data-level="3"><span>25&ndash;44</span><strong>L1&ndash;3</strong></li>
+            <li data-level="4"><span>45&ndash;69</span><strong>L1&ndash;4</strong></li>
+            <li data-level="5"><span>70+</span><strong>L1&ndash;5</strong></li>
+          </ol>
+        </div>
+
+        <div class="start-actions">
+          <button type="button" id="btn-start-round" class="btn btn-primary btn-large">
+            Start 5-Question Round
+          </button>
+
+          <div class="reset-area">
+            <button type="button" id="btn-reset-request" class="btn btn-ghost">
+              Reset saved progress
+            </button>
+            <div id="reset-confirm-row" class="reset-confirm" hidden>
+              <span>Reset score and question history to 0?</span>
+              <div class="reset-confirm-buttons">
+                <button type="button" id="btn-reset-confirm" class="btn btn-danger-small">Yes, reset</button>
+                <button type="button" id="btn-reset-cancel" class="btn btn-ghost-small">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="shortcut-hint">
+          Keyboard: <kbd>1</kbd>&ndash;<kbd>4</kbd> choose an answer &middot; <kbd>H</kbd> hint &middot; <kbd>Enter</kbd> start or continue
+        </p>
+      </section>
+
+      <!-- Question & Feedback Screen -->
+      <section id="screen-question" class="card screen" hidden>
+        <div class="round-bar">
+          <span class="round-counter" id="question-progress-text">Question 1 of 5</span>
+          <div class="round-pips" id="round-pips" aria-hidden="true"></div>
+        </div>
+
+        <div class="card-meta">
+          <ul class="tag-list" id="question-tags" aria-label="Question topics"></ul>
+          <span class="difficulty-badge" id="question-difficulty">Difficulty 1 / 5</span>
+        </div>
+
+        <h2 class="question-text" id="question-text"></h2>
+
+        <div class="hint-section">
+          <button
+            type="button"
+            id="btn-hint"
+            class="btn-hint-toggle"
+            aria-expanded="false"
+            aria-controls="hint-panel"
+          >
+            Show hint <kbd>H</kbd>
+          </button>
+          <div id="hint-panel" class="hint-panel" hidden>
+            <span class="hint-label">Hint:</span>
+            <span id="hint-text"></span>
+          </div>
+        </div>
+
+        <div id="answers-list" class="answers-list" role="group" aria-label="Answer choices"></div>
+
+        <div id="feedback-panel" class="feedback-panel" aria-live="polite" hidden>
+          <div class="feedback-header">
+            <strong id="feedback-verdict" class="feedback-verdict"></strong>
+            <span id="feedback-delta" class="feedback-delta"></span>
+          </div>
+          <p id="feedback-explanation" class="feedback-explanation"></p>
+          <div class="feedback-actions">
+            <button type="button" id="btn-next" class="btn btn-primary">
+              Next question
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Round Summary Screen -->
+      <section id="screen-summary" class="card screen" hidden>
+        <p class="eyebrow">Round Complete</p>
+        <h2 class="screen-title" id="summary-headline">Round summary</h2>
+
+        <div class="summary-grid">
+          <div class="overview-box">
+            <span class="overview-label">This Round</span>
+            <strong class="overview-number" id="summary-correct">0 / 5</strong>
+            <span class="overview-caption">Correct answers</span>
+          </div>
+          <div class="overview-box">
+            <span class="overview-label">Score Change</span>
+            <strong class="overview-number" id="summary-delta">0</strong>
+            <span class="overview-caption" id="summary-delta-caption">Net change</span>
+          </div>
+          <div class="overview-box">
+            <span class="overview-label">Lifetime Score</span>
+            <strong class="overview-number" id="summary-score">0</strong>
+            <span class="overview-caption" id="summary-ceiling">Pool: Level 1</span>
+          </div>
+        </div>
+
+        <div id="summary-ceiling-note" class="ceiling-note" role="status" hidden></div>
+
+        <div class="recap-section">
+          <h3 class="recap-heading">Questions in this round</h3>
+          <ol id="summary-recap" class="recap-list"></ol>
+        </div>
+
+        <div class="summary-actions">
+          <button type="button" id="btn-play-again" class="btn btn-primary btn-large">
+            Play Next Round
+          </button>
+          <button type="button" id="btn-back-start" class="btn btn-ghost">
+            Overview &amp; Reset
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/questions.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -790,6 +790,126 @@ kbd {
   gap: 10px;
 }
 
+/* Categories */
+.category-box {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.category-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.category-caption {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-toggle {
+  appearance: none;
+  width: 100%;
+  min-height: 52px;
+  text-align: left;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-family: inherit;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.category-toggle:hover {
+  border-color: var(--border-strong);
+}
+
+.category-toggle:focus-visible {
+  outline: 3px solid rgba(11, 92, 171, 0.35);
+  outline-offset: 2px;
+}
+
+.category-toggle.is-on {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.category-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.category-name {
+  font-size: 0.97rem;
+  font-weight: 700;
+}
+
+.category-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.category-switch {
+  flex-shrink: 0;
+  min-width: 52px;
+  text-align: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: var(--text-muted);
+}
+
+.category-toggle.is-on .category-switch {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.category-message {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--hint-bg);
+  border: 1px solid var(--hint-border);
+  color: var(--hint-text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 560px) {
   .app-shell {

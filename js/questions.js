@@ -1,9 +1,13 @@
+// Every question needs: id, category, tags, difficulty (1-5), question, hint,
+// answers (2-4, exactly one correct), explanationShort, explanationLong.
+// `category` groups questions for the on/off toggles on the start screen.
 window.DRUPAL_QUESTIONS = [
   // =========================================================================
   // LEVEL 1 — What the concept is for (20 questions)
   // =========================================================================
   {
     id: "l1-services-purpose",
+    category: "Drupal concepts",
     tags: ["Services"],
     difficulty: 1,
     question: "What is the main job of Drupal's service container?",
@@ -19,6 +23,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-routing-purpose",
+    category: "Drupal concepts",
     tags: ["Routing", "Security"],
     difficulty: 1,
     question: "What problem does a Drupal route definition solve before your controller ever runs?",
@@ -34,6 +39,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-plugins-purpose",
+    category: "Drupal concepts",
     tags: ["Plugins"],
     difficulty: 1,
     question: "When does Drupal use a plugin type instead of a single normal service?",
@@ -48,6 +54,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-entities-vs-tables",
+    category: "Drupal concepts",
     tags: ["Entities"],
     difficulty: 1,
     question: "Why does Drupal model nodes, users, and taxonomy terms as entities rather than unrelated database tables?",
@@ -62,6 +69,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-config-purpose",
+    category: "Drupal concepts",
     tags: ["Config"],
     difficulty: 1,
     question: "What is the Configuration API designed to move between development, staging, and production?",
@@ -76,6 +84,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-render-arrays-purpose",
+    category: "Drupal concepts",
     tags: ["Render API", "Caching"],
     difficulty: 1,
     question: "True or false: Drupal controllers return structured render arrays instead of raw HTML strings mainly so output can still be altered, themed, and cached with its metadata intact.",
@@ -89,6 +98,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-cache-tags-purpose",
+    category: "Drupal concepts",
     tags: ["Caching"],
     difficulty: 1,
     question: "What question do Drupal cache tags answer for a cached page or block?",
@@ -104,6 +114,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-forms-purpose",
+    category: "Drupal concepts",
     tags: ["Forms", "Security"],
     difficulty: 1,
     question: "Why does Drupal route user input through the Form API instead of reading raw POST values inside a controller?",
@@ -118,6 +129,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-queues-purpose",
+    category: "Drupal concepts",
     tags: ["Queues"],
     difficulty: 1,
     question: "What is the Queue API meant for in a Drupal backend?",
@@ -132,6 +144,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-twig-autoescape-purpose",
+    category: "Drupal concepts",
     tags: ["Security", "Render API"],
     difficulty: 1,
     question: "Why does Drupal escape plain strings automatically when rendering templates and text output?",
@@ -147,6 +160,7 @@ window.DRUPAL_QUESTIONS = [
 
   {
     id: "l1-database-api-purpose",
+    category: "Drupal concepts",
     tags: ["Database", "Security"],
     difficulty: 1,
     question: "Why does Drupal provide its own Database API instead of having modules talk directly to PHP's PDO?",
@@ -161,6 +175,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-updates-purpose",
+    category: "Drupal concepts",
     tags: ["Updates"],
     difficulty: 1,
     question: "What are update hooks for when a module ships a new release?",
@@ -175,6 +190,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-testing-purpose",
+    category: "Drupal concepts",
     tags: ["Testing"],
     difficulty: 1,
     question: "Why does Drupal split automated tests into tiers such as Unit, Kernel, and Functional instead of booting a full site for every test?",
@@ -189,6 +205,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-drupal11-recipes-purpose",
+    category: "Drupal concepts",
     tags: ["Drupal 11", "Config"],
     difficulty: 1,
     question: "What problem do Drupal Recipes (introduced in Drupal 10.3 and core in Drupal 11) solve compared to traditional install profiles?",
@@ -203,6 +220,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-cache-bins-purpose",
+    category: "Drupal concepts",
     tags: ["Caching"],
     difficulty: 1,
     question: "Why does Drupal divide cached data into separate cache bins (such as render, discovery, and config) instead of putting everything in one table?",
@@ -217,6 +235,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-plugin-manager-purpose",
+    category: "Drupal concepts",
     tags: ["Plugins", "Services"],
     difficulty: 1,
     question: "What is the role of a plugin manager service in Drupal?",
@@ -231,6 +250,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-route-param-upcasting-purpose",
+    category: "Drupal concepts",
     tags: ["Routing", "Entities"],
     difficulty: 1,
     question: "What does route parameter upcasting do when a URL contains an entity ID such as /node/42?",
@@ -245,6 +265,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-entity-bundles-purpose",
+    category: "Drupal concepts",
     tags: ["Entities", "Config"],
     difficulty: 1,
     question: "What is an entity bundle in Drupal (such as Article or Basic Page for the Node entity type)?",
@@ -259,6 +280,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-form-state-purpose",
+    category: "Drupal concepts",
     tags: ["Forms"],
     difficulty: 1,
     question: "What is the main job of the FormState object during a Drupal form's lifecycle?",
@@ -273,6 +295,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l1-cron-purpose",
+    category: "Drupal concepts",
     tags: ["Queues"],
     difficulty: 1,
     question: "What is Drupal cron designed to handle for a live site?",
@@ -291,6 +314,7 @@ window.DRUPAL_QUESTIONS = [
   // =========================================================================
   {
     id: "l2-di-over-static-drupal",
+    category: "Drupal concepts",
     tags: ["Services", "Testing"],
     difficulty: 2,
     question: "Why do Drupal best practices prefer injecting services into a class constructor over calling the global \\Drupal helper inside methods?",
@@ -306,6 +330,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-route-access-separation",
+    category: "Drupal concepts",
     tags: ["Routing", "Security"],
     difficulty: 2,
     question: "Why should permission or role checks live on the route definition rather than as an 'if' statement at the top of a controller method?",
@@ -320,6 +345,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-cache-contexts-why",
+    category: "Drupal concepts",
     tags: ["Caching", "Render API"],
     difficulty: 2,
     question: "Why must a render array declare a cache context whenever its output changes based on the current user's role, language, or URL query string?",
@@ -334,6 +360,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-config-schema-why",
+    category: "Drupal concepts",
     tags: ["Config"],
     difficulty: 2,
     question: "Why does a custom module need a configuration schema file alongside its YAML configuration?",
@@ -349,6 +376,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-form-rebuild-why",
+    category: "Drupal concepts",
     tags: ["Forms"],
     difficulty: 2,
     question: "Why does Drupal rebuild a form from form state during multi-step or AJAX interactions instead of only rendering the initial build once?",
@@ -363,6 +391,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-post-update-vs-update-n",
+    category: "Drupal concepts",
     tags: ["Updates", "Entities"],
     difficulty: 2,
     question: "Why does Drupal separate numbered update hooks from named post-update functions?",
@@ -378,6 +407,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-plugin-derivatives-why",
+    category: "Drupal concepts",
     tags: ["Plugins"],
     difficulty: 2,
     question: "What is a plugin derivative for?",
@@ -392,6 +422,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-kernel-vs-unit-tests",
+    category: "Drupal concepts",
     tags: ["Testing"],
     difficulty: 2,
     question: "When is a Kernel test a better tool than a pure Unit test in Drupal?",
@@ -406,6 +437,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-entity-query-vs-raw-sql",
+    category: "Drupal concepts",
     tags: ["Entities", "Database"],
     difficulty: 2,
     question: "Why should application logic find entities with an entity query instead of writing a direct SQL query against node or field tables?",
@@ -420,6 +452,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-drupal11-attributes-why",
+    category: "Drupal concepts",
     tags: ["Plugins", "Drupal 11"],
     difficulty: 2,
     question: "Why did Drupal move plugin discovery from docblock annotations toward native PHP attributes in Drupal 10.2+ and Drupal 11?",
@@ -435,6 +468,7 @@ window.DRUPAL_QUESTIONS = [
 
   {
     id: "l2-queue-claim-lease-why",
+    category: "Drupal concepts",
     tags: ["Queues"],
     difficulty: 2,
     question: "Why does a Drupal queue worker claim an item with a temporary lease instead of deleting it the instant processing starts?",
@@ -449,6 +483,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-asset-libraries-why",
+    category: "Drupal concepts",
     tags: ["Render API", "Caching"],
     difficulty: 2,
     question: "Why does Drupal attach CSS and JavaScript as named libraries on render arrays instead of printing <script> and <link> tags directly inside Twig templates?",
@@ -463,6 +498,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-cache-max-age-why",
+    category: "Drupal concepts",
     tags: ["Caching"],
     difficulty: 2,
     question: "If cache tags already invalidate output whenever Drupal data changes, why does cache max-age still exist?",
@@ -477,6 +513,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-tagged-services-why",
+    category: "Drupal concepts",
     tags: ["Services"],
     difficulty: 2,
     question: "Why does Drupal use tagged services (service collectors) for systems like route access checks, cache contexts, and path processors?",
@@ -491,6 +528,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-entity-revisions-why",
+    category: "Drupal concepts",
     tags: ["Entities"],
     difficulty: 2,
     question: "Why does Drupal build revisions directly into the Entity API instead of leaving version history to a custom log table per content type?",
@@ -505,6 +543,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-config-dependencies-why",
+    category: "Drupal concepts",
     tags: ["Config"],
     difficulty: 2,
     question: "Why do exported configuration entities (like a View or field display) list their module and config dependencies inside their YAML?",
@@ -519,6 +558,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-form-alter-why",
+    category: "Drupal concepts",
     tags: ["Forms"],
     difficulty: 2,
     question: "Why does Drupal let modules alter existing forms instead of asking them to subclass or replace the original form class?",
@@ -533,6 +573,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-update-sandbox-batching-why",
+    category: "Drupal concepts",
     tags: ["Updates", "Database"],
     difficulty: 2,
     question: "Why do update hooks and post-updates receive a $sandbox parameter when updating large amounts of data?",
@@ -547,6 +588,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-access-result-neutral-why",
+    category: "Drupal concepts",
     tags: ["Security", "Routing"],
     difficulty: 2,
     question: "Why does Drupal's access system have three outcomes—allowed, forbidden, and neutral—instead of a simple true or false?",
@@ -561,6 +603,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l2-drupal11-sdc-why",
+    category: "Drupal concepts",
     tags: ["Render API", "Drupal 11"],
     difficulty: 2,
     question: "Why do Single Directory Components (stabilized in Drupal 10.3 and core in Drupal 11) keep a component's Twig template, CSS, JS, and metadata schema in one folder?",
@@ -579,6 +622,7 @@ window.DRUPAL_QUESTIONS = [
   // =========================================================================
   {
     id: "entity-query-access-check",
+    category: "Drupal concepts",
     tags: ["Entities", "Security"],
     difficulty: 3,
     question: "Why must an entity query say explicitly whether access should be checked, instead of checking or skipping access on its own?",
@@ -593,6 +637,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-config-vs-state",
+    category: "Drupal concepts",
     tags: ["Config"],
     difficulty: 3,
     question: "A module records the timestamp of the last successful external API sync. Why does that value belong in the State API rather than Configuration?",
@@ -607,6 +652,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-tags-vs-contexts-vs-max-age",
+    category: "Drupal concepts",
     tags: ["Caching", "Render API"],
     difficulty: 3,
     question: "A sidebar block shows '3 articles in your preferred category,' where each user picks a favorite category on their profile. Which combination of cache metadata models why this output changes?",
@@ -622,6 +668,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-content-vs-config-entity",
+    category: "Drupal concepts",
     tags: ["Entities", "Config"],
     difficulty: 3,
     question: "You are modeling 'Office Locations' for a company with 400 branches that editors update daily, translate into four languages, and keep revisions for. Should this be a content entity or a config entity?",
@@ -635,6 +682,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-hooks-vs-events",
+    category: "Drupal concepts",
     tags: ["Services", "Drupal 11"],
     difficulty: 3,
     question: "How do event subscribers and hooks differ in how a module takes part in Drupal's behavior?",
@@ -650,6 +698,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-queue-vs-batch-api",
+    category: "Drupal concepts",
     tags: ["Queues", "Forms"],
     difficulty: 3,
     question: "Both Batch API and Queue API split large jobs into small chunks so PHP does not time out. How do you choose between them?",
@@ -665,6 +714,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-csrf-route-vs-form",
+    category: "Drupal concepts",
     tags: ["Routing", "Security", "Forms"],
     difficulty: 3,
     question: "Form API protects submitted forms against Cross-Site Request Forgery (CSRF) automatically. When do you need explicit CSRF protection on a custom route?",
@@ -679,6 +729,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-functional-vs-functional-js",
+    category: "Drupal concepts",
     tags: ["Testing"],
     difficulty: 3,
     question: "Why shouldn't every browser-style test be written as a FunctionalJavascript test 'just in case'?",
@@ -693,6 +744,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-plain-text-vs-markup-render",
+    category: "Drupal concepts",
     tags: ["Security", "Render API"],
     difficulty: 3,
     question: "In a render array, what is the conceptual difference between passing a string as plain text versus passing it as markup?",
@@ -707,6 +759,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-entity-view-builder-vs-template-query",
+    category: "Drupal concepts",
     tags: ["Entities", "Render API", "Caching"],
     difficulty: 3,
     question: "Why should a controller render referenced entities through their view builder (or a field formatter) instead of pulling raw field strings into a custom array?",
@@ -722,6 +775,7 @@ window.DRUPAL_QUESTIONS = [
 
   {
     id: "l3-plugin-vs-tagged-service",
+    category: "Drupal concepts",
     tags: ["Plugins", "Services"],
     difficulty: 3,
     question: "How do you decide whether a new extension point in your module should be a plugin type versus a tagged service?",
@@ -736,6 +790,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-tempstore-vs-state-vs-cache",
+    category: "Drupal concepts",
     tags: ["Config", "Security"],
     difficulty: 3,
     question: "A multi-step wizard needs to hold one logged-in editor's unfinished draft between requests for a few hours. Why does it belong in Private TempStore instead of State or Cache?",
@@ -750,6 +805,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-database-merge-vs-insert",
+    category: "Drupal concepts",
     tags: ["Database"],
     difficulty: 3,
     question: "When writing to a custom non-entity table where a key might already exist, why use a Database Merge query instead of a SELECT followed by an INSERT or UPDATE?",
@@ -764,6 +820,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-hook-update-vs-hook-install",
+    category: "Drupal concepts",
     tags: ["Updates"],
     difficulty: 3,
     question: "What is the difference between putting setup logic in an install hook versus an update hook?",
@@ -778,6 +835,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-route-subscriber-vs-routing-yml",
+    category: "Drupal concepts",
     tags: ["Routing"],
     difficulty: 3,
     question: "When should a module use a RouteSubscriber instead of static entries in its *.routing.yml file?",
@@ -792,6 +850,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-plugin-configuration-vs-definition",
+    category: "Drupal concepts",
     tags: ["Plugins"],
     difficulty: 3,
     question: "What is the difference between a plugin's definition (its attribute or annotation) and a plugin's configuration?",
@@ -806,6 +865,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-entity-validation-vs-form-validation",
+    category: "Drupal concepts",
     tags: ["Entities", "Forms"],
     difficulty: 3,
     question: "Why should rules about valid data on a content entity (such as 'end date must be after start date') live as entity validation constraints rather than only in the entity form?",
@@ -820,6 +880,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-cache-invalidate-vs-delete",
+    category: "Drupal concepts",
     tags: ["Caching"],
     difficulty: 3,
     question: "In Drupal's Cache API, what is the conceptual difference between invalidating a cache item versus deleting it?",
@@ -834,6 +895,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-queue-cron-vs-manual-worker",
+    category: "Drupal concepts",
     tags: ["Queues"],
     difficulty: 3,
     question: "What is the difference between a QueueWorker plugin that declares a cron time limit versus one that omits cron configuration?",
@@ -848,6 +910,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l3-testing-browser-vs-kernel-config-schema",
+    category: "Drupal concepts",
     tags: ["Testing", "Config"],
     difficulty: 3,
     question: "True or false: Drupal's Kernel and Functional tests check saved configuration against its config schema by default, so missing or mistyped schema keys fail the test.",
@@ -865,6 +928,7 @@ window.DRUPAL_QUESTIONS = [
   // =========================================================================
   {
     id: "l4-uncacheable-max-age-zero-bubbling",
+    category: "Drupal concepts",
     tags: ["Caching", "Render API"],
     difficulty: 4,
     question: "A developer puts max-age 0 on a tiny personalized greeting block inside the site header so it is always fresh. What unintended side effect does that have on Dynamic Page Cache?",
@@ -880,6 +944,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-saving-config-during-request",
+    category: "Drupal concepts",
     tags: ["Config", "Caching"],
     difficulty: 4,
     question: "What goes wrong if a front-end controller saves a module's editable configuration on normal visitor page views (for example, to increment a view counter)?",
@@ -895,6 +960,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-current-user-injected-in-singleton-service",
+    category: "Drupal concepts",
     tags: ["Services", "Security", "Testing"],
     difficulty: 4,
     question: "Why does Drupal inject an account proxy for 'current_user' instead of injecting a loaded User entity into services when they are built?",
@@ -910,6 +976,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-access-result-missing-cacheability",
+    category: "Drupal concepts",
     tags: ["Security", "Caching", "Routing"],
     difficulty: 4,
     question: "A custom access check allows access only while an entity's 'Archived' checkbox is unchecked, but returns its allowed/forbidden result without adding the entity as a cacheable dependency. What bug appears?",
@@ -925,6 +992,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-config-override-in-form",
+    category: "Drupal concepts",
     tags: ["Config", "Forms"],
     difficulty: 4,
     question: "In settings.php, production overrides an API key in configuration with an environment variable. Why do standard Drupal config forms load stored ('editable') config rather than the overridden runtime values?",
@@ -939,6 +1007,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-entity-save-inside-presave-hook",
+    category: "Drupal concepts",
     tags: ["Entities"],
     difficulty: 4,
     question: "During an entity's presave phase, why must you change fields directly on that entity instead of calling save() on the same entity?",
@@ -953,6 +1022,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-cron-heavy-loop-without-queue",
+    category: "Drupal concepts",
     tags: ["Queues"],
     difficulty: 4,
     question: "Why is looping over thousands of entities directly inside a module's cron implementation risky even if cron runs in the background?",
@@ -967,6 +1037,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-custom-list-missing-list-cache-tag",
+    category: "Drupal concepts",
     tags: ["Caching", "Entities", "Render API"],
     difficulty: 4,
     question: "A custom block lists the 5 newest published Event nodes and adds each node's own cache tag (node:10 through node:14), but no list or bundle cache tag. What fails?",
@@ -982,6 +1053,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-form-validation-side-effects",
+    category: "Drupal concepts",
     tags: ["Forms"],
     difficulty: 4,
     question: "Why must a form's validation handler never save entities, charge an API, or send emails, even after checking that its own field looks valid?",
@@ -996,6 +1068,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-sql-string-interpolation",
+    category: "Drupal concepts",
     tags: ["Database", "Security"],
     difficulty: 4,
     question: "Even when using Drupal's dynamic select query builder, where can SQL injection still sneak in if a developer is careless?",
@@ -1011,6 +1084,7 @@ window.DRUPAL_QUESTIONS = [
 
   {
     id: "l4-plugin-discovery-cache-stale",
+    category: "Drupal concepts",
     tags: ["Plugins", "Caching"],
     difficulty: 4,
     question: "A developer adds a new Block plugin class—or changes the label in its PHP attribute—reloads the site, and Drupal acts as if the change doesn't exist. Why?",
@@ -1025,6 +1099,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-update-hook-using-live-config-service",
+    category: "Drupal concepts",
     tags: ["Updates", "Config"],
     difficulty: 4,
     question: "Why is it risky for a numbered update hook to assume a module's current PHP classes, services, or future config shape will stay unchanged across later releases?",
@@ -1039,6 +1114,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-drupal11-deprecated-hook-procedural-collision",
+    category: "Drupal concepts",
     tags: ["Drupal 11", "Services"],
     difficulty: 4,
     question: "When converting a module's hooks to Drupal 11.1+ #[Hook] classes while keeping Drupal 10 compatibility, what goes wrong if you leave the old procedural hook in .module without marking it as legacy?",
@@ -1053,6 +1129,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-render-early-in-controller",
+    category: "Drupal concepts",
     tags: ["Render API", "Caching"],
     difficulty: 4,
     question: "What goes wrong if a controller renders a child render array into a plain HTML string too early and embeds that string in the page?",
@@ -1067,6 +1144,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-database-transaction-not-saved",
+    category: "Drupal concepts",
     tags: ["Database"],
     difficulty: 4,
     question: "In Drupal's Database API, why does starting a transaction without storing the returned transaction object in a variable defeat the transaction?",
@@ -1081,6 +1159,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-entity-cache-static-memory-leak",
+    category: "Drupal concepts",
     tags: ["Entities", "Queues", "Updates"],
     difficulty: 4,
     question: "A long-running Drush post-update or queue worker loads and updates 50,000 nodes in batches inside one PHP process and hits the memory limit. What is the usual culprit?",
@@ -1095,6 +1174,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-route-without-method-restriction",
+    category: "Drupal concepts",
     tags: ["Routing", "Security"],
     difficulty: 4,
     question: "Besides requiring a CSRF token, why is it risky for a custom route that deletes or mutates data to accept plain GET requests?",
@@ -1109,6 +1189,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-form-state-storage-unserializable",
+    category: "Drupal concepts",
     tags: ["Forms", "Services"],
     difficulty: 4,
     question: "Why does storing a live service (such as the database connection or entity type manager) inside a form's $form_state storage break AJAX or multi-step forms?",
@@ -1123,6 +1204,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-test-relying-on-real-external-http",
+    category: "Drupal concepts",
     tags: ["Testing", "Services"],
     difficulty: 4,
     question: "Why is letting a Kernel or Functional test call a live third-party HTTP API a bad practice even when that API is usually online?",
@@ -1137,6 +1219,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l4-security-trusted-markup-raw-input",
+    category: "Drupal concepts",
     tags: ["Security", "Render API"],
     difficulty: 4,
     question: "A developer wraps raw text from a user-submitted field in a trusted markup object (like Markup::create()) because Twig was escaping quotes and symbols. What goes wrong?",
@@ -1155,6 +1238,7 @@ window.DRUPAL_QUESTIONS = [
   // =========================================================================
   {
     id: "l5-drupal11-oop-hooks-why",
+    category: "Drupal concepts",
     tags: ["Services", "Drupal 11"],
     difficulty: 5,
     question: "Drupal 11.1+ lets you write hooks as class methods with #[Hook] attributes, while Drupal 10 relied on functions in .module files. What problem did hook classes actually solve?",
@@ -1170,6 +1254,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-autowiring-tradeoff",
+    category: "Drupal concepts",
     tags: ["Services", "Drupal 11"],
     difficulty: 5,
     question: "Modern Drupal supports service autowiring, so a constructor type-hinted with interfaces can get dependencies without listing every argument in YAML. When does autowiring still need explicit configuration?",
@@ -1185,6 +1270,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-lazy-builder-granularity-tradeoff",
+    category: "Drupal concepts",
     tags: ["Caching", "Render API"],
     difficulty: 5,
     question: "Lazy builders keep personalized or uncacheable fragments from ruining page-level caching. Why shouldn't you wrap every block on a page in its own lazy builder?",
@@ -1199,6 +1285,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-base-fields-vs-configurable-fields",
+    category: "Drupal concepts",
     tags: ["Entities", "Config", "Database"],
     difficulty: 5,
     question: "On a custom content entity, how do you weigh defining a property as a code-defined base field versus a configurable field exported to YAML?",
@@ -1213,6 +1300,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-broad-vs-targeted-cache-tags",
+    category: "Drupal concepts",
     tags: ["Caching", "Entities"],
     difficulty: 5,
     question: "What is the real tradeoff between a broad list tag (like 'node_list'), a bundle list tag (like 'node_list:article'), and a custom tag (like 'featured_homepage_items')?",
@@ -1227,6 +1315,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-decorator-vs-service-provider-swap",
+    category: "Drupal concepts",
     tags: ["Services"],
     difficulty: 5,
     question: "When extending a core or contrib service, why is service decoration usually safer than swapping the service class outright in a service provider?",
@@ -1241,6 +1330,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-internal-page-cache-vs-dynamic-page-cache",
+    category: "Drupal concepts",
     tags: ["Caching", "Routing", "Security"],
     difficulty: 5,
     question: "How do Internal Page Cache and Dynamic Page Cache differ in their assumptions, and what breaks if custom code violates Internal Page Cache's assumption?",
@@ -1255,6 +1345,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-plugin-annotation-attribute-transition",
+    category: "Drupal concepts",
     tags: ["Plugins", "Drupal 11"],
     difficulty: 5,
     question: "When maintaining a custom plugin manager across Drupal 10.3 and Drupal 11, why did core support both attribute and annotation discovery before dropping annotations?",
@@ -1269,6 +1360,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-config-validation-constraints-d11",
+    category: "Drupal concepts",
     tags: ["Config", "Forms", "Drupal 11"],
     difficulty: 5,
     question: "Validation for module settings used to live only in a config form's validateForm() method. Why has Drupal 10.2+ and Drupal 11 pushed validation constraints into config schema instead?",
@@ -1283,6 +1375,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-entity-storage-load-multiple-vs-loop",
+    category: "Drupal concepts",
     tags: ["Entities", "Database", "Caching"],
     difficulty: 5,
     question: "Beyond running fewer SQL queries, why is loading entities in bulk (loadMultiple) after an entity query different from calling load() one by one in a loop?",
@@ -1297,6 +1390,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-update-hook-vs-deploy-hook",
+    category: "Drupal concepts",
     tags: ["Updates", "Config"],
     difficulty: 5,
     question: "In a standard Drush deployment (`drush deploy`), why do deploy hooks (`hook_deploy_NAME`) exist separately from both update hooks and post-updates?",
@@ -1311,6 +1405,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-queue-requeue-vs-suspend-exception",
+    category: "Drupal concepts",
     tags: ["Queues"],
     difficulty: 5,
     question: "Inside a QueueWorker, how do throwing a normal exception, a RequeueException, and a SuspendQueueException tell Drupal to react differently?",
@@ -1325,6 +1420,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-testing-unit-vs-kernel-vs-functional-tradeoff",
+    category: "Drupal concepts",
     tags: ["Testing"],
     difficulty: 5,
     question: "A module computes shipping rates (pure math), stores rate rules as config entities, and shows a summary block on checkout. What is the cleanest split across Drupal's test tiers?",
@@ -1339,6 +1435,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-plugin-manager-container-factory",
+    category: "Drupal concepts",
     tags: ["Plugins", "Services"],
     difficulty: 5,
     question: "Why do plugins that need services implement a container-factory interface instead of simply being declared as normal services in services.yml?",
@@ -1353,6 +1450,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-routing-dynamic-vs-path-processor",
+    category: "Drupal concepts",
     tags: ["Routing", "Caching"],
     difficulty: 5,
     question: "How do an inbound path processor and a dynamic route differ when mapping human-friendly URLs to Drupal content?",
@@ -1367,6 +1465,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-entity-reference-vs-computed-field",
+    category: "Drupal concepts",
     tags: ["Entities", "Database", "Caching"],
     difficulty: 5,
     question: "For derived entity data (like a count of active registrations on an Event), what is the tradeoff between a stored field updated on save versus a computed field?",
@@ -1381,6 +1480,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-form-ajax-vs-htmx-drupal11",
+    category: "Drupal concepts",
     tags: ["Forms", "Render API", "Drupal 11"],
     difficulty: 5,
     question: "Drupal 11.2+ added HTMX support alongside the classic Form API AJAX system. What limitation of Form API AJAX makes lighter HTML-over-the-wire patterns appealing for non-form UI?",
@@ -1395,6 +1495,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-database-replica-read-tradeoff",
+    category: "Drupal concepts",
     tags: ["Database", "Caching"],
     difficulty: 5,
     question: "Drupal's Database API lets read queries target a 'replica' database server. Why shouldn't every SELECT query in a module automatically target the replica?",
@@ -1409,6 +1510,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-security-access-bypass-vs-account-switcher",
+    category: "Drupal concepts",
     tags: ["Security", "Services", "Entities"],
     difficulty: 5,
     question: "A background queue worker generates a report showing only entities and fields a specific customer may view. Why is switching to that user via AccountSwitcher safer than running with access checks disabled?",
@@ -1423,6 +1525,7 @@ window.DRUPAL_QUESTIONS = [
   },
   {
     id: "l5-drupal11-recipes-vs-features-config-sync",
+    category: "Drupal concepts",
     tags: ["Config", "Drupal 11"],
     difficulty: 5,
     question: "How do Drupal Recipes (Drupal 10.3 and Drupal 11) differ philosophically from the old Features module or ongoing module-managed config?",

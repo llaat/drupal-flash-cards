@@ -11,9 +11,18 @@ No server, build step, or dependencies are needed:
 
 Progress is saved automatically in your browser's `localStorage` under a single key (`drupal_flashcards_state_v1`). Use **Reset saved progress** on the start screen at any time to return your score and history to `0`.
 
+## Categories
+
+Every question belongs to one category (currently **Drupal concepts**). The start screen lists each category with an On/Off toggle:
+
+- All categories are **on by default**, including any added later.
+- You only get questions from categories that are on.
+- At least one category must be on before **Start** works; with none on, Start is disabled and a message explains why.
+- Your choices are saved with your progress and kept when you reset your score.
+
 ## How a round works
 
-- **5 questions per round:** Drawn up front from your unlocked difficulty pool without repeating inside the round.
+- **5 questions per round:** Drawn up front from your unlocked difficulty pool (limited to the categories that are on) without repeating inside the round.
 - **Randomized answers:** Each card has 2 to 4 choices (including True/False and multiple choice) shuffled every time the card appears so you cannot memorize button positions.
 - **Free hints:** Open a hint before answering (`H` or **Show hint**) for conceptual framing with no score penalty.
 - **Reason-focused explanations:**
@@ -52,6 +61,10 @@ Write questions that test **architectural judgment and reasons**, not memorized 
 - Keep all choices on a card about the same length and level of detail, so the right one can't be spotted by being the longest or most careful.
 - When Drupal 10 and Drupal 11 differ (such as plugin PHP attributes, `#[Hook]` classes, or config schema validation constraints), name the version in the question and explain the other version's context in `explanationLong`.
 
+### Category
+
+Every card needs a `category` string, for example `"Drupal concepts"`. Using a new category name automatically adds a toggle for it on the start screen (on by default). Tags describe the topic of a card; the category decides which group of cards the player can switch on or off.
+
 ### Allowed tags
 
 Every card needs one or more tags from this fixed list:
@@ -63,6 +76,7 @@ Every card needs one or more tags from this fixed list:
 ```js
 {
   id: "unique-kebab-case-id",
+  category: "Drupal concepts",
   tags: ["Entities", "Security"],
   difficulty: 3, // integer 1..5
   question: "Why must an entity query say explicitly whether access should be checked, instead of checking or skipping access on its own?",

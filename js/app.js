@@ -32,6 +32,8 @@
 
   var deck = Array.isArray(window.DRUPAL_QUESTIONS) ? window.DRUPAL_QUESTIONS : [];
   var deckValid = false;
+  var categories = []; // Unique category names found in the deck, in first-seen order.
+  var categoryButtons = {}; // category name -> toggle button element
 
   var persisted = loadState();
 
@@ -61,6 +63,8 @@
     startPoolCount: document.getElementById("start-pool-count"),
     startNextUnlock: document.getElementById("start-next-unlock"),
     ladderSteps: document.getElementById("ladder-steps"),
+    categoryList: document.getElementById("category-list"),
+    categoryMessage: document.getElementById("category-message"),
     btnStartRound: document.getElementById("btn-start-round"),
     btnResetRequest: document.getElementById("btn-reset-request"),
     resetConfirmRow: document.getElementById("reset-confirm-row"),
@@ -98,7 +102,10 @@
     return {
       score: 0,
       lastOutcomes: {},
-      recentIds: []
+      recentIds: [],
+      // Categories the player switched off. Storing the "off" list means every
+      // category, including ones added later, is on by default.
+      disabledCategories: []
     };
   }
 
@@ -121,10 +128,14 @@
       var recentIds = Array.isArray(parsed.recentIds)
         ? parsed.recentIds.filter(function (id) { return typeof id === "string"; }).slice(-RECENT_HISTORY_LIMIT)
         : [];
+      var disabledCategories = Array.isArray(parsed.disabledCategories)
+        ? parsed.disabledCategories.filter(function (name) { return typeof name === "string"; })
+        : [];
       return {
         score: score,
         lastOutcomes: lastOutcomes,
-        recentIds: recentIds
+        recentIds: recentIds,
+        disabledCategories: disabledCategories
       };
     } catch (err) {
       return defaultState();
@@ -216,6 +227,10 @@
         }
       }
 
+      if (typeof card.category !== "string" || !card.category.trim()) {
+        errors.push(label + " is missing a category.");
+      }
+
       if (typeof card.question !== "string" || !card.question.trim()) {
         errors.push(label + " is missing question text.");
       }
@@ -304,10 +319,49 @@
     return ceilingWeight * outcomeWeight * recencyWeight;
   }
 
-  function drawRound(ceiling) {
-    var pool = deck.filter(function (card) {
-      return card.difficulty <= ceiling;
+  function collectCategories(cards) {
+    var names = [];
+    for (var i = 0; i < cards.length; i++) {
+      var name = cards[i] && cards[i].category;
+      if (typeof name === "string" && name.trim() && names.indexOf(name) === -1) {
+        names.push(name);
+      }
+    }
+    return names;
+  }
+
+  function isCategoryEnabled(name) {
+    return persisted.disabledCategories.indexOf(name) === -1;
+  }
+
+  function enabledCategoryNames() {
+    return categories.filter(isCategoryEnabled);
+  }
+
+  function setCategoryEnabled(name, enabled) {
+    var index = persisted.disabledCategories.indexOf(name);
+    if (enabled && index !== -1) {
+      persisted.disabledCategories.splice(index, 1);
+    } else if (!enabled && index === -1) {
+      persisted.disabledCategories.push(name);
+    }
+    saveState();
+  }
+
+  // Cards the player can actually be asked right now: inside the difficulty
+  // ceiling and belonging to a category that is switched on.
+  function availableCards(ceiling) {
+    return deck.filter(function (card) {
+      return card.difficulty <= ceiling && isCategoryEnabled(card.category);
     });
+  }
+
+  function canStartRound() {
+    return deckValid && availableCards(tierForScore(persisted.score).level).length > 0;
+  }
+
+  function drawRound(ceiling) {
+    var pool = availableCards(ceiling);
 
     var remaining = pool.slice();
     var chosen = [];
@@ -354,16 +408,94 @@
     els.headerCeiling.textContent = tier.label;
   }
 
+  function buildCategoryButtons() {
+    els.categoryList.innerHTML = "";
+    categoryButtons = {};
+
+    categories.forEach(function (name) {
+      var total = deck.filter(function (card) { return card.category === name; }).length;
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "category-toggle";
+
+      var text = document.createElement("span");
+      text.className = "category-text";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "category-name";
+      nameEl.textContent = name;
+
+      var countEl = document.createElement("span");
+      countEl.className = "category-count";
+      countEl.textContent = total + (total === 1 ? " question" : " questions");
+
+      var switchEl = document.createElement("span");
+      switchEl.className = "category-switch";
+      switchEl.setAttribute("aria-hidden", "true");
+
+      text.appendChild(nameEl);
+      text.appendChild(countEl);
+      btn.appendChild(text);
+      btn.appendChild(switchEl);
+
+      btn.addEventListener("click", function () {
+        setCategoryEnabled(name, !isCategoryEnabled(name));
+        renderStartSelection();
+      });
+
+      categoryButtons[name] = btn;
+      els.categoryList.appendChild(btn);
+    });
+  }
+
+  // Refreshes everything on the start screen that depends on which categories
+  // are on: the toggle buttons, the pool size, and whether Start is allowed.
+  // Updates elements in place so keyboard focus stays on the toggled button.
+  function renderStartSelection() {
+    var tier = tierForScore(persisted.score);
+
+    categories.forEach(function (name) {
+      var btn = categoryButtons[name];
+      var on = isCategoryEnabled(name);
+      btn.classList.toggle("is-on", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.querySelector(".category-switch").textContent = on ? "On" : "Off";
+    });
+
+    var selectedTotal = deck.filter(function (card) {
+      return isCategoryEnabled(card.category);
+    }).length;
+    var availableCount = availableCards(tier.level).length;
+
+    if (enabledCategoryNames().length === 0) {
+      els.startPoolCount.textContent = "No category selected";
+    } else {
+      els.startPoolCount.textContent =
+        availableCount + " of " + selectedTotal + " questions in pool";
+    }
+
+    var message = "";
+    if (deckValid) {
+      if (enabledCategoryNames().length === 0) {
+        message = "Turn on at least one category to start.";
+      } else if (availableCount === 0) {
+        message = "The selected categories have no questions at your current level yet. Turn on another category.";
+      }
+    }
+    els.categoryMessage.textContent = message;
+    els.categoryMessage.hidden = message === "";
+
+    els.btnStartRound.disabled = !canStartRound();
+  }
+
   function renderStartScreen() {
     updateHeaderStatus();
     var tier = tierForScore(persisted.score);
-    var unlockedCount = deck.filter(function (card) {
-      return card.difficulty <= tier.level;
-    }).length;
 
     els.startScore.textContent = String(persisted.score);
     els.startCeiling.textContent = tier.label;
-    els.startPoolCount.textContent = unlockedCount + " of " + deck.length + " questions in pool";
+    renderStartSelection();
 
     if (tier.level < 5) {
       var nextTier = tierForLevel(tier.level + 1);
@@ -386,7 +518,7 @@
   }
 
   function startRound() {
-    if (!deckValid) {
+    if (!canStartRound()) {
       return;
     }
 
@@ -601,7 +733,7 @@
     var startTier = tierForLevel(session.roundStartCeiling);
 
     if (correctCount === totalCount) {
-      els.summaryHeadline.textContent = "Clean sweep — 5 out of 5";
+      els.summaryHeadline.textContent = "Clean sweep — " + totalCount + " out of " + totalCount;
     } else if (correctCount >= 4) {
       els.summaryHeadline.textContent = "Strong round";
     } else if (correctCount >= 3) {
@@ -674,7 +806,10 @@
   }
 
   function resetProgress() {
+    // Reset clears score and history but keeps the player's category choices.
+    var keptDisabledCategories = persisted.disabledCategories;
     persisted = defaultState();
+    persisted.disabledCategories = keptDisabledCategories;
     saveState();
     renderStartScreen();
   }
@@ -717,7 +852,7 @@
       var active = document.activeElement;
       var focusedButton = active && active.tagName === "BUTTON" ? active : null;
 
-      if (session.screen === "start" && els.resetConfirmRow.hidden && deckValid) {
+      if (session.screen === "start" && els.resetConfirmRow.hidden && canStartRound()) {
         if (focusedButton && focusedButton !== els.btnStartRound) {
           return;
         }
@@ -726,7 +861,7 @@
         }
         event.preventDefault();
         startRound();
-      } else if (session.screen === "summary" && deckValid) {
+      } else if (session.screen === "summary" && canStartRound()) {
         if (focusedButton && focusedButton !== els.btnPlayAgain) {
           return;
         }
@@ -746,12 +881,18 @@
       els.validationBanner.hidden = false;
       els.validationBanner.textContent =
         "Question deck validation failed (" + errors.length + "): " + errors.slice(0, 3).join(" ");
-      els.btnStartRound.disabled = true;
     } else {
       deckValid = true;
       els.validationBanner.hidden = true;
-      els.btnStartRound.disabled = false;
     }
+
+    // Build the category toggles from the deck. Forget saved "off" choices for
+    // categories that no longer exist so they can't hide a future category.
+    categories = collectCategories(deck);
+    persisted.disabledCategories = persisted.disabledCategories.filter(function (name) {
+      return categories.indexOf(name) !== -1;
+    });
+    buildCategoryButtons();
 
     els.btnStartRound.addEventListener("click", startRound);
     els.btnHint.addEventListener("click", toggleHint);

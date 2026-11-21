@@ -37,10 +37,31 @@
     { level: 5, minScore: 70, maxScore: Infinity, label: "Levels 1–5", detail: "Tradeoffs & Drupal 10 vs 11" }
   ];
 
+  // Category colours. `accent` must keep at least 4.5:1 contrast against white,
+  // against `soft`, and with white text on top of it (WCAG AA). `tint` is only
+  // used for decoration, never behind or as text.
+  var CATEGORY_PALETTE = {
+    blue: { accent: "#0b5cab", soft: "#eaf3fc", tint: "#7fb0e0" },
+    raspberry: { accent: "#a8174f", soft: "#fcebf1", tint: "#e48aac" },
+    teal: { accent: "#0b6b6b", soft: "#e5f4f3", tint: "#6fbcb8" },
+    purple: { accent: "#6a3d9a", soft: "#f2ecfa", tint: "#b39ad6" },
+    amber: { accent: "#8a4b00", soft: "#fdf1e0", tint: "#e0a85c" },
+    slate: { accent: "#3f4f66", soft: "#eef1f5", tint: "#a3afc0" }
+  };
+  var PALETTE_ORDER = ["blue", "raspberry", "teal", "purple", "amber", "slate"];
+
+  // Categories listed here keep a fixed colour; any other category gets the
+  // next colour from PALETTE_ORDER that is not taken yet.
+  var CATEGORY_COLOR_NAMES = {
+    "Drupal concepts": "blue",
+    "DvO (Drupal voor Overheden)": "raspberry"
+  };
+
   var deck = Array.isArray(window.DRUPAL_QUESTIONS) ? window.DRUPAL_QUESTIONS : [];
   var deckValid = false;
   var categories = []; // Unique category names found in the deck, in first-seen order.
   var categoryButtons = {}; // category name -> toggle button element
+  var categoryColors = {}; // category name -> CATEGORY_PALETTE entry
 
   var persisted = loadState();
 
@@ -401,6 +422,38 @@
     return names;
   }
 
+  function assignCategoryColors(names) {
+    var colors = {};
+    var used = [];
+    names.forEach(function (name) {
+      var fixed = CATEGORY_COLOR_NAMES[name];
+      if (fixed && CATEGORY_PALETTE[fixed]) {
+        colors[name] = CATEGORY_PALETTE[fixed];
+        used.push(fixed);
+      }
+    });
+    names.forEach(function (name) {
+      if (colors[name]) {
+        return;
+      }
+      var free = PALETTE_ORDER.filter(function (key) { return used.indexOf(key) === -1; });
+      // With more categories than colours, reuse the palette in order.
+      var key = free.length > 0 ? free[0] : PALETTE_ORDER[used.length % PALETTE_ORDER.length];
+      colors[name] = CATEGORY_PALETTE[key];
+      used.push(key);
+    });
+    return colors;
+  }
+
+  // Exposes the category colour as CSS custom properties on the element, so
+  // the stylesheet decides where the colour is used.
+  function applyCategoryColor(el, categoryName) {
+    var color = categoryColors[categoryName] || CATEGORY_PALETTE.slate;
+    el.style.setProperty("--cat-accent", color.accent);
+    el.style.setProperty("--cat-soft", color.soft);
+    el.style.setProperty("--cat-tint", color.tint);
+  }
+
   function isCategoryEnabled(name) {
     return persisted.disabledCategories.indexOf(name) === -1;
   }
@@ -499,6 +552,7 @@
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "category-toggle";
+      applyCategoryColor(btn, name);
 
       var text = document.createElement("span");
       text.className = "category-text";
@@ -604,6 +658,7 @@
     for (var i = 0; i < session.roundCards.length; i++) {
       var pip = document.createElement("span");
       pip.className = "round-pip";
+      applyCategoryColor(pip, session.roundCards[i].category);
       if (i < session.roundResults.length) {
         pip.classList.add(session.roundResults[i].correct ? "is-correct" : "is-wrong");
       } else if (i === session.roundIndex) {
@@ -623,7 +678,12 @@
       "Question " + (session.roundIndex + 1) + " of " + session.roundCards.length;
     renderRoundPips();
 
+    applyCategoryColor(els.screenQuestion, card.category);
     els.questionTags.innerHTML = "";
+    var categoryTag = document.createElement("li");
+    categoryTag.className = "tag-pill tag-pill--category";
+    categoryTag.textContent = card.category;
+    els.questionTags.appendChild(categoryTag);
     for (var t = 0; t < card.tags.length; t++) {
       var tagItem = document.createElement("li");
       tagItem.className = "tag-pill";
@@ -842,6 +902,7 @@
       var item = session.roundResults[r];
       var li = document.createElement("li");
       li.className = "recap-item " + (item.correct ? "is-correct" : "is-wrong");
+      applyCategoryColor(li, item.card.category);
 
       var mark = document.createElement("span");
       mark.className = "recap-mark";
@@ -856,8 +917,13 @@
 
       var meta = document.createElement("div");
       meta.className = "recap-meta";
-      meta.textContent =
-        item.card.category + " \u00b7 Difficulty " + item.card.difficulty + " \u00b7 " + item.card.tags.join(", ");
+      var metaCategory = document.createElement("span");
+      metaCategory.className = "recap-category";
+      metaCategory.textContent = item.card.category;
+      meta.appendChild(metaCategory);
+      meta.appendChild(document.createTextNode(
+        " \u00b7 Difficulty " + item.card.difficulty + " \u00b7 " + item.card.tags.join(", ")
+      ));
 
       body.appendChild(qText);
       body.appendChild(meta);
@@ -953,6 +1019,7 @@
     // Build the category toggles from the deck. Forget saved "off" choices for
     // categories that no longer exist so they can't hide a future category.
     categories = collectCategories(deck);
+    categoryColors = assignCategoryColors(categories);
     persisted.disabledCategories = persisted.disabledCategories.filter(function (name) {
       return categories.indexOf(name) !== -1;
     });

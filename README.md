@@ -67,7 +67,7 @@ Write questions that test **architectural judgment and reasons**, not memorized 
 
 ### Category
 
-Every card needs a `category` string, such as `"Drupal concepts"` or `"DvO (Drupal voor Overheden)"`. Using a new category name automatically adds a toggle for it on the start screen (on by default). Every category must include at least **5 difficulty-1 questions** so a new player who switches on only that category can draw a full round at score `0`. Tags describe the topic of a card; the category decides which group of cards the player can switch on or off.
+Every card needs a `category` string, such as `"Drupal concepts"` or `"DvO (Drupal voor Overheden)"`. Using a new category name automatically adds a toggle for it on the start screen (on by default) and gives it its own colour, which marks the category on the start screen, the question card, and the round summary. New categories get the next free colour from `PALETTE_ORDER` in `js/app.js`; to pin a specific colour, add the category to `CATEGORY_COLOR_NAMES`. Any colour added to `CATEGORY_PALETTE` must keep at least 4.5:1 contrast (WCAG AA) for its `accent` against white and its `soft` background, and for white text on the `accent`. Every category must include at least **5 difficulty-1 questions** so a new player who switches on only that category can draw a full round at score `0`. Tags describe the topic of a card; the category decides which group of cards the player can switch on or off.
 
 ### DvO authoring notes
 

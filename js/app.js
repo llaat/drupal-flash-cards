@@ -52,13 +52,11 @@
     answered: false,
     hintOpen: false,
     roundResults: [],
-    roundStartScore: 0,
-    roundStartCeiling: 1
+    roundStartScores: {} // category name -> score when the round began
   };
 
   var els = {
     headerScore: document.getElementById("header-score"),
-    headerCeiling: document.getElementById("header-ceiling"),
     validationBanner: document.getElementById("validation-banner"),
 
     screenStart: document.getElementById("screen-start"),
@@ -66,10 +64,8 @@
     screenSummary: document.getElementById("screen-summary"),
 
     startScore: document.getElementById("start-score"),
-    startCeiling: document.getElementById("start-ceiling"),
+    startPool: document.getElementById("start-pool"),
     startPoolCount: document.getElementById("start-pool-count"),
-    startNextUnlock: document.getElementById("start-next-unlock"),
-    ladderSteps: document.getElementById("ladder-steps"),
     categoryList: document.getElementById("category-list"),
     categoryMessage: document.getElementById("category-message"),
     btnStartRound: document.getElementById("btn-start-round"),
@@ -98,7 +94,6 @@
     summaryDelta: document.getElementById("summary-delta"),
     summaryDeltaCaption: document.getElementById("summary-delta-caption"),
     summaryScore: document.getElementById("summary-score"),
-    summaryCeiling: document.getElementById("summary-ceiling"),
     summaryCeilingNote: document.getElementById("summary-ceiling-note"),
     summaryRecap: document.getElementById("summary-recap"),
     btnPlayAgain: document.getElementById("btn-play-again"),
@@ -107,7 +102,8 @@
 
   function defaultState() {
     return {
-      score: 0,
+      // Each category climbs the difficulty ladder on its own score.
+      scores: {},
       lastOutcomes: {},
       recentIds: [],
       // Categories the player switched off. Storing the "off" list means every
@@ -126,7 +122,17 @@
       if (!parsed || typeof parsed !== "object") {
         return defaultState();
       }
-      var score = typeof parsed.score === "number" && isFinite(parsed.score)
+      var scores = {};
+      if (parsed.scores && typeof parsed.scores === "object") {
+        Object.keys(parsed.scores).forEach(function (name) {
+          var value = parsed.scores[name];
+          if (typeof value === "number" && isFinite(value)) {
+            scores[name] = Math.max(0, Math.floor(value));
+          }
+        });
+      }
+      // Older saves kept one score for the whole deck; init() moves it onto categories.
+      var legacyScore = !parsed.scores && typeof parsed.score === "number" && isFinite(parsed.score)
         ? Math.max(0, Math.floor(parsed.score))
         : 0;
       var lastOutcomes = parsed.lastOutcomes && typeof parsed.lastOutcomes === "object"
@@ -139,7 +145,8 @@
         ? parsed.disabledCategories.filter(function (name) { return typeof name === "string"; })
         : [];
       return {
-        score: score,
+        scores: scores,
+        legacyScore: legacyScore,
         lastOutcomes: lastOutcomes,
         recentIds: recentIds,
         disabledCategories: disabledCategories
@@ -173,6 +180,44 @@
       }
     }
     return DIFFICULTY_TIERS[0];
+  }
+
+  function scoreFor(categoryName) {
+    return persisted.scores[categoryName] || 0;
+  }
+
+  function tierForCategory(categoryName) {
+    return tierForScore(scoreFor(categoryName));
+  }
+
+  function totalScore() {
+    var total = 0;
+    for (var i = 0; i < categories.length; i++) {
+      total += scoreFor(categories[i]);
+    }
+    return total;
+  }
+
+  // Moves a pre-category save's single score onto the categories the player
+  // actually answered questions in, so nobody loses earned progress.
+  function migrateLegacyScore() {
+    var legacyScore = persisted.legacyScore;
+    delete persisted.legacyScore;
+    if (!legacyScore || Object.keys(persisted.scores).length > 0) {
+      return;
+    }
+
+    var played = [];
+    for (var i = 0; i < deck.length; i++) {
+      var card = deck[i];
+      if (persisted.lastOutcomes[card.id] && played.indexOf(card.category) === -1) {
+        played.push(card.category);
+      }
+    }
+    (played.length > 0 ? played : categories).forEach(function (name) {
+      persisted.scores[name] = legacyScore;
+    });
+    saveState();
   }
 
   function validateDeck(cards) {
@@ -374,20 +419,21 @@
     saveState();
   }
 
-  // Cards the player can actually be asked right now: inside the difficulty
-  // ceiling and belonging to a category that is switched on.
-  function availableCards(ceiling) {
+  // Cards the player can actually be asked right now: in a category that is
+  // switched on and inside that category's own difficulty ceiling.
+  function availableCards() {
     return deck.filter(function (card) {
-      return card.difficulty <= ceiling && isCategoryEnabled(card.category);
+      return isCategoryEnabled(card.category) &&
+        card.difficulty <= tierForCategory(card.category).level;
     });
   }
 
   function canStartRound() {
-    return deckValid && availableCards(tierForScore(persisted.score).level).length > 0;
+    return deckValid && availableCards().length > 0;
   }
 
-  function drawRound(ceiling) {
-    var pool = availableCards(ceiling);
+  function drawRound() {
+    var pool = availableCards();
 
     var remaining = pool.slice();
     var chosen = [];
@@ -398,7 +444,7 @@
       var totalWeight = 0;
 
       for (var i = 0; i < remaining.length; i++) {
-        var w = computeCardWeight(remaining[i], ceiling);
+        var w = computeCardWeight(remaining[i], tierForCategory(remaining[i].category).level);
         weights.push(w);
         totalWeight += w;
       }
@@ -429,9 +475,18 @@
   }
 
   function updateHeaderStatus() {
-    var tier = tierForScore(persisted.score);
-    els.headerScore.textContent = String(persisted.score);
-    els.headerCeiling.textContent = tier.label;
+    els.headerScore.textContent = String(totalScore());
+  }
+
+  function categoryProgressText(name) {
+    var score = scoreFor(name);
+    var tier = tierForScore(score);
+    var text = "Score " + score + " \u00b7 " + tier.label;
+    if (tier.level < 5) {
+      var nextTier = tierForLevel(tier.level + 1);
+      text += " \u00b7 +" + (nextTier.minScore - score) + " to unlock Level " + nextTier.level;
+    }
+    return text;
   }
 
   function buildCategoryButtons() {
@@ -456,12 +511,16 @@
       countEl.className = "category-count";
       countEl.textContent = total + (total === 1 ? " question" : " questions");
 
+      var progressEl = document.createElement("span");
+      progressEl.className = "category-progress";
+
       var switchEl = document.createElement("span");
       switchEl.className = "category-switch";
       switchEl.setAttribute("aria-hidden", "true");
 
       text.appendChild(nameEl);
       text.appendChild(countEl);
+      text.appendChild(progressEl);
       btn.appendChild(text);
       btn.appendChild(switchEl);
 
@@ -479,26 +538,26 @@
   // are on: the toggle buttons, the pool size, and whether Start is allowed.
   // Updates elements in place so keyboard focus stays on the toggled button.
   function renderStartSelection() {
-    var tier = tierForScore(persisted.score);
-
     categories.forEach(function (name) {
       var btn = categoryButtons[name];
       var on = isCategoryEnabled(name);
       btn.classList.toggle("is-on", on);
       btn.setAttribute("aria-pressed", on ? "true" : "false");
       btn.querySelector(".category-switch").textContent = on ? "On" : "Off";
+      btn.querySelector(".category-progress").textContent = categoryProgressText(name);
     });
 
     var selectedTotal = deck.filter(function (card) {
       return isCategoryEnabled(card.category);
     }).length;
-    var availableCount = availableCards(tier.level).length;
+    var availableCount = availableCards().length;
 
+    els.startPool.textContent = String(availableCount);
     if (enabledCategoryNames().length === 0) {
       els.startPoolCount.textContent = "No category selected";
     } else {
       els.startPoolCount.textContent =
-        availableCount + " of " + selectedTotal + " questions in pool";
+        "of " + selectedTotal + " questions in the selected categories";
     }
 
     var message = "";
@@ -517,28 +576,8 @@
 
   function renderStartScreen() {
     updateHeaderStatus();
-    var tier = tierForScore(persisted.score);
-
-    els.startScore.textContent = String(persisted.score);
-    els.startCeiling.textContent = tier.label;
+    els.startScore.textContent = String(totalScore());
     renderStartSelection();
-
-    if (tier.level < 5) {
-      var nextTier = tierForLevel(tier.level + 1);
-      var needed = nextTier.minScore - persisted.score;
-      els.startNextUnlock.textContent =
-        "Need +" + needed + " more (score " + nextTier.minScore + ") to unlock Level " + nextTier.level;
-    } else {
-      els.startNextUnlock.textContent = "All 5 difficulty levels unlocked";
-    }
-
-    var stepItems = els.ladderSteps.querySelectorAll("li[data-level]");
-    for (var i = 0; i < stepItems.length; i++) {
-      var itemLevel = Number(stepItems[i].getAttribute("data-level"));
-      stepItems[i].classList.toggle("is-unlocked", itemLevel <= tier.level);
-      stepItems[i].classList.toggle("is-current", itemLevel === tier.level);
-    }
-
     els.resetConfirmRow.hidden = true;
     showScreen("start");
   }
@@ -548,10 +587,11 @@
       return;
     }
 
-    var startTier = tierForScore(persisted.score);
-    session.roundStartScore = persisted.score;
-    session.roundStartCeiling = startTier.level;
-    session.roundCards = drawRound(startTier.level);
+    session.roundStartScores = {};
+    categories.forEach(function (name) {
+      session.roundStartScores[name] = scoreFor(name);
+    });
+    session.roundCards = drawRound();
     session.roundIndex = 0;
     session.roundResults = [];
 
@@ -684,12 +724,9 @@
       }
     }
 
-    var previousScore = persisted.score;
-    if (isCorrect) {
-      persisted.score += 1;
-    } else {
-      persisted.score = Math.max(0, persisted.score - 1);
-    }
+    var previousScore = scoreFor(card.category);
+    var newScore = isCorrect ? previousScore + 1 : Math.max(0, previousScore - 1);
+    persisted.scores[card.category] = newScore;
 
     persisted.lastOutcomes[card.id] = isCorrect ? "correct" : "wrong";
     persisted.recentIds.push(card.id);
@@ -710,14 +747,14 @@
 
     if (isCorrect) {
       els.feedbackVerdict.textContent = "Correct";
-      els.feedbackDelta.textContent = "+1 score (now " + persisted.score + ")";
+      els.feedbackDelta.textContent = "+1 " + card.category + " score (now " + newScore + ")";
       els.feedbackExplanation.textContent = card.explanationShort;
     } else {
       els.feedbackVerdict.textContent = "Not quite";
       els.feedbackDelta.textContent =
         previousScore > 0
-          ? "\u22121 score (now " + persisted.score + ")"
-          : "Score stays at 0";
+          ? "\u22121 " + card.category + " score (now " + newScore + ")"
+          : card.category + " score stays at 0";
       els.feedbackExplanation.textContent = card.explanationLong;
     }
 
@@ -754,9 +791,12 @@
     }
 
     var totalCount = session.roundResults.length;
-    var netDelta = persisted.score - session.roundStartScore;
-    var endTier = tierForScore(persisted.score);
-    var startTier = tierForLevel(session.roundStartCeiling);
+    var startTotal = 0;
+    categories.forEach(function (name) {
+      startTotal += session.roundStartScores[name] || 0;
+    });
+    var endTotal = totalScore();
+    var netDelta = endTotal - startTotal;
 
     if (correctCount === totalCount) {
       els.summaryHeadline.textContent = "Clean sweep — " + totalCount + " out of " + totalCount;
@@ -771,33 +811,31 @@
     els.summaryCorrect.textContent = correctCount + " / " + totalCount;
     els.summaryDelta.textContent = (netDelta > 0 ? "+" : netDelta < 0 ? "\u2212" : "") + Math.abs(netDelta);
     els.summaryDeltaCaption.textContent =
-      "From " + session.roundStartScore + " to " + persisted.score;
-    els.summaryScore.textContent = String(persisted.score);
-    els.summaryCeiling.textContent = "Pool: " + endTier.label;
+      "From " + startTotal + " to " + endTotal;
+    els.summaryScore.textContent = String(endTotal);
 
-    if (endTier.level > startTier.level) {
-      els.summaryCeilingNote.hidden = false;
-      els.summaryCeilingNote.classList.remove("is-down");
-      els.summaryCeilingNote.textContent =
-        "Difficulty ceiling rose from " +
-        startTier.label +
-        " to " +
-        endTier.label +
-        ". Harder questions (" +
-        endTier.detail.toLowerCase() +
-        ") now join the next round.";
-    } else if (endTier.level < startTier.level) {
-      els.summaryCeilingNote.hidden = false;
-      els.summaryCeilingNote.classList.add("is-down");
-      els.summaryCeilingNote.textContent =
-        "Difficulty ceiling moved from " +
-        startTier.label +
-        " back to " +
-        endTier.label +
-        " so the next round focuses on core concepts before ramping up again.";
-    } else {
-      els.summaryCeilingNote.hidden = true;
-    }
+    var ceilingNotes = [];
+    var anyRose = false;
+    categories.forEach(function (name) {
+      var startTier = tierForScore(session.roundStartScores[name] || 0);
+      var endTier = tierForCategory(name);
+      if (endTier.level > startTier.level) {
+        anyRose = true;
+        ceilingNotes.push(
+          name + ": difficulty ceiling rose from " + startTier.label + " to " + endTier.label +
+          ". Harder questions (" + endTier.detail.toLowerCase() + ") now join the next round."
+        );
+      } else if (endTier.level < startTier.level) {
+        ceilingNotes.push(
+          name + ": difficulty ceiling moved from " + startTier.label + " back to " + endTier.label +
+          " so the next round focuses on core concepts before ramping up again."
+        );
+      }
+    });
+
+    els.summaryCeilingNote.hidden = ceilingNotes.length === 0;
+    els.summaryCeilingNote.classList.toggle("is-down", ceilingNotes.length > 0 && !anyRose);
+    els.summaryCeilingNote.textContent = ceilingNotes.join(" ");
 
     els.summaryRecap.innerHTML = "";
     for (var r = 0; r < session.roundResults.length; r++) {
@@ -819,7 +857,7 @@
       var meta = document.createElement("div");
       meta.className = "recap-meta";
       meta.textContent =
-        "Difficulty " + item.card.difficulty + " \u00b7 " + item.card.tags.join(", ");
+        item.card.category + " \u00b7 Difficulty " + item.card.difficulty + " \u00b7 " + item.card.tags.join(", ");
 
       body.appendChild(qText);
       body.appendChild(meta);
@@ -918,6 +956,7 @@
     persisted.disabledCategories = persisted.disabledCategories.filter(function (name) {
       return categories.indexOf(name) !== -1;
     });
+    migrateLegacyScore();
     buildCategoryButtons();
 
     els.btnStartRound.addEventListener("click", startRound);

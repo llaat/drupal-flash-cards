@@ -256,20 +256,6 @@ body {
   color: var(--text);
 }
 
-.ladder-steps li.is-unlocked {
-  border-color: #9ec5ea;
-  background: var(--primary-soft);
-}
-
-.ladder-steps li.is-current {
-  border-color: var(--primary);
-  box-shadow: inset 0 0 0 1px var(--primary);
-}
-
-.ladder-steps li.is-current strong {
-  color: var(--primary);
-}
-
 /* Buttons */
 .btn {
   appearance: none;
@@ -870,7 +856,8 @@ kbd {
   font-weight: 700;
 }
 
-.category-count {
+.category-count,
+.category-progress {
   font-size: 0.8rem;
   color: var(--text-muted);
 }

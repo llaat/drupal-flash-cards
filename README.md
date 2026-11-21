@@ -9,7 +9,7 @@ No server, build step, or dependencies are needed:
 1. Double-click `index.html` to open it directly in any modern browser (or open it via a local static server if you prefer).
 2. Click **Start 5-Question Round** (or press `Enter`).
 
-Progress is saved automatically in your browser's `localStorage` under a single key (`drupal_flashcards_state_v1`). Use **Reset saved progress** on the start screen at any time to return your score and history to `0`.
+Progress is saved automatically in your browser's `localStorage` under a single key (`drupal_flashcards_state_v1`). Use **Reset saved progress** on the start screen at any time to return every category score and your history to `0`.
 
 ## Categories
 
@@ -22,12 +22,12 @@ Every question belongs to one category (**Drupal concepts** or **DvO (Drupal voo
 
 ## How a round works
 
-- **5 questions per round:** Drawn up front from your unlocked difficulty pool (limited to the categories that are on) without repeating inside the round.
+- **5 questions per round:** Drawn up front from the categories that are on, each card limited to the difficulty you have unlocked in its own category, without repeating inside the round.
 - **Randomized answers:** Each card has 2 to 4 choices (including True/False and multiple choice) shuffled every time the card appears so you cannot memorize button positions.
 - **Free hints:** Open a hint before answering (`H` or **Show hint**) for conceptual framing with no score penalty.
 - **Reason-focused explanations:**
-  - **Correct (`+1` score):** Shows a concise explanation (`explanationShort`) reinforcing the core principle.
-  - **Incorrect (`-1` score, minimum `0`):** Highlights your choice alongside the right answer and shows a fuller explanation (`explanationLong`) unpacking why Drupal works this way and why the alternatives fail.
+  - **Correct (`+1` to that category's score):** Shows a concise explanation (`explanationShort`) reinforcing the core principle.
+  - **Incorrect (`-1` to that category's score, minimum `0`):** Highlights your choice alongside the right answer and shows a fuller explanation (`explanationLong`) unpacking why Drupal works this way and why the alternatives fail.
 - **Keyboard shortcuts:**
   - `1`–`4` — Pick an answer choice
   - `H` — Show or hide the hint before answering
@@ -35,9 +35,11 @@ Every question belongs to one category (**Drupal concepts** or **DvO (Drupal voo
 
 ## Score and difficulty ladder
 
-Your lifetime score moves up on right answers and down on misses (never below `0`). Easier questions stay in the pool, while weights favor questions near your ceiling, questions you missed last time, and questions not seen in the last few rounds:
+Every category has its own score, which moves up on right answers and down on misses in that category (never below `0`). Each category climbs the ladder independently, so you can be on Level 4 questions in one category while still getting Level 1 questions in a category you find harder. The start screen shows each category's score, unlocked levels, and how far it is from the next level; the header shows the total across categories.
 
-| Lifetime score | Unlocked pool | Focus of the tier |
+Easier questions stay in the pool, while weights favor questions near that category's ceiling, questions you missed last time, and questions not seen in the last few rounds:
+
+| Category score | Unlocked pool | Focus of the tier |
 | --- | --- | --- |
 | `0–9` | Level 1 | What the concept is for |
 | `10–24` | Levels 1–2 | Why this approach exists |
@@ -45,7 +47,9 @@ Your lifetime score moves up on right answers and down on misses (never below `0
 | `45–69` | Levels 1–4 | What fails if you pick the tempting alternative |
 | `70+` | Levels 1–5 | Tradeoffs and why Drupal 11 defaults differ from Drupal 10 |
 
-Because the 5 cards in a round are drawn when the round begins, crossing a threshold mid-round takes effect on the **next** round (and is called out on the round summary screen).
+Because the 5 cards in a round are drawn when the round begins, crossing a threshold mid-round takes effect on the **next** round (and is called out per category on the round summary screen).
+
+Saves from before per-category scoring had one shared score. On first load, that score is copied to each category you had already answered questions in; other categories start at `0`.
 
 ## Adding a question
 

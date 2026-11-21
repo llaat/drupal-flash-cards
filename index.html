@@ -26,13 +26,9 @@
       </div>
 
       <div class="status-cluster" aria-live="polite">
-        <div class="stat-pill" title="Lifetime score (+1 correct, -1 wrong, minimum 0)">
-          <span class="stat-label">Score</span>
+        <div class="stat-pill" title="Sum of your category scores (+1 correct, -1 wrong, minimum 0 per category)">
+          <span class="stat-label">Total score</span>
           <span class="stat-value" id="header-score">0</span>
-        </div>
-        <div class="stat-pill" title="Highest question difficulty included in new rounds">
-          <span class="stat-label">Pool</span>
-          <span class="stat-value" id="header-ceiling">Level 1</span>
         </div>
       </div>
     </header>
@@ -46,7 +42,7 @@
           <p class="eyebrow">5-Question Study Rounds</p>
           <h2 class="screen-title">Practice the <em>why</em> behind Drupal</h2>
           <p class="lead">
-            Each round draws five concept questions up to your current difficulty ceiling.
+            Each round draws five concept questions, each up to the difficulty ceiling you have reached in its category.
             Answer choices shuffle every time, hints give context without penalty, and wrong answers
             explain the underlying architecture so the mental model sticks.
           </p>
@@ -54,21 +50,21 @@
 
         <div class="score-overview">
           <div class="overview-box">
-            <span class="overview-label">Lifetime Score</span>
+            <span class="overview-label">Total Score</span>
             <strong class="overview-number" id="start-score">0</strong>
-            <span class="overview-caption">+1 right &middot; &minus;1 wrong (min 0)</span>
+            <span class="overview-caption">Sum of your category scores</span>
           </div>
           <div class="overview-box">
-            <span class="overview-label">Unlocked Difficulty</span>
-            <strong class="overview-number" id="start-ceiling">Level 1</strong>
-            <span class="overview-caption" id="start-pool-count">0 questions unlocked</span>
+            <span class="overview-label">Questions in Pool</span>
+            <strong class="overview-number" id="start-pool">0</strong>
+            <span class="overview-caption" id="start-pool-count">of 0 questions in the selected categories</span>
           </div>
         </div>
 
         <div class="ladder-box" aria-label="Difficulty unlock thresholds">
           <div class="ladder-header">
             <span class="ladder-title">Difficulty ladder</span>
-            <span class="ladder-next" id="start-next-unlock">Reach score 10 to unlock Level 2</span>
+            <span class="ladder-next">Each category climbs on its own score: +1 right, &minus;1 wrong (min 0)</span>
           </div>
           <ol class="ladder-steps" id="ladder-steps">
             <li data-level="1"><span>0&ndash;9</span><strong>L1</strong></li>
@@ -98,7 +94,7 @@
               Reset saved progress
             </button>
             <div id="reset-confirm-row" class="reset-confirm" hidden>
-              <span>Reset score and question history to 0?</span>
+              <span>Reset all category scores and question history to 0?</span>
               <div class="reset-confirm-buttons">
                 <button type="button" id="btn-reset-confirm" class="btn btn-danger-small">Yes, reset</button>
                 <button type="button" id="btn-reset-cancel" class="btn btn-ghost-small">Cancel</button>
@@ -175,9 +171,9 @@
             <span class="overview-caption" id="summary-delta-caption">Net change</span>
           </div>
           <div class="overview-box">
-            <span class="overview-label">Lifetime Score</span>
+            <span class="overview-label">Total Score</span>
             <strong class="overview-number" id="summary-score">0</strong>
-            <span class="overview-caption" id="summary-ceiling">Pool: Level 1</span>
+            <span class="overview-caption">Sum of your category scores</span>
           </div>
         </div>
 

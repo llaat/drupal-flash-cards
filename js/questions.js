@@ -1537,5 +1537,1000 @@ window.DRUPAL_QUESTIONS = [
     ],
     explanationShort: "Recipes are one-shot starting points: once applied, the resulting configuration belongs completely to your site's own config sync with no ongoing coupling to the recipe.",
     explanationLong: "Traditional module-bundled config or Features-style workflows created constant tension: if a site builder customized a View or content type locally, updating the upstream feature risked reverting or conflicting with local edits. Recipes are applied once via config actions and then get out of the way—your site exports and maintains the resulting YAML in Git as its own configuration, free to evolve without fighting the original recipe."
+  },
+
+  // =========================================================================
+  // DvO (Drupal voor Overheden) — LEVEL 1: What the concept is for (13 cards)
+  // =========================================================================
+  {
+    id: "dvo-l1-platform-multi-repo-split",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform"],
+    difficulty: 1,
+    question: "How is code split between the root DvO repository and the folders inside projects/?",
+    hint: "Contrast shared platform packages used by dozens of municipalities with one municipality's own site.",
+    answers: [
+      { text: "The root repo holds shared packages; each folder in projects/ is its own Git repo.", correct: true },
+      { text: "One single Git repository tracks both the shared packages and every municipality site.", correct: false },
+      { text: "Each project repo holds a full copy of shared modules with no separate root repo.", correct: false },
+      { text: "The root repo holds live municipality content, while projects/ holds only themes.", correct: false }
+    ],
+    explanationShort: "DvO uses a nested multi-repository setup: shared packages live in the root Git repo, while every municipality under projects/ has its own standalone Git repository.",
+    explanationLong: "In the DvO workspace, composer-packages/ (such as dvg, io_dvg, and toptasks_base_theme) and platform scripts belong to the root repository. Every directory under projects/<name> has its own .git folder, history, branches, and remote, and is ignored by the root repository's .gitignore so shared platform releases and tenant-specific changes stay cleanly separated."
+  },
+  {
+    id: "dvo-l1-platform-package-symlinks",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 1,
+    question: "True or false: Editing a file via a project's symlinked dvg-composer-packages/ or contrib theme path modifies the shared root repository rather than only that project.",
+    hint: "Follow where the symlink actually points on disk.",
+    answers: [
+      { text: "True: the symlink points into composer-packages/ in the shared root repository.", correct: true },
+      { text: "False: DDEV copies symlinked packages per project so edits stay isolated locally.", correct: false }
+    ],
+    explanationShort: "Project checkouts symlink shared packages back to composer-packages/ in the root repo, so edits through those paths touch every municipality.",
+    explanationLong: "During local setup, a municipality project links shared packages (such as htdocs/themes/contrib/toptasks_base_theme or dvg-composer-packages/dvg) directly to composer-packages/ in the workspace root. Editing through that path changes the shared package in the root Git repository—never an isolated copy for just one customer."
+  },
+  {
+    id: "dvo-l1-features-purpose",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Features", "Plugins"],
+    difficulty: 1,
+    question: "What problem does the DvO Features system (dvo_core_features) solve on the platform?",
+    hint: "Think about optional capabilities in shared modules that only some municipalities want turned on.",
+    answers: [
+      { text: "It lets administrators toggle optional module functionality per site without uninstalling.", correct: true },
+      { text: "It exports content types and views into reusable PHP modules, the way Drupal 7 Features did.", correct: false },
+      { text: "It grants editors temporary elevated permissions without changing their user roles.", correct: false },
+      { text: "It compiles SCSS and JavaScript bundles conditionally for each municipality theme.", correct: false }
+    ],
+    explanationShort: "DvO Features provides DvoFeature plugins that let sites switch optional platform capabilities on or off at /admin/dvg/advanced/features.",
+    explanationLong: "Because most DvO modules are installed across all municipalities via the shared profile, uninstalling a module per customer is often impractical. Registering a #[DvoFeature] plugin and checking DvoFeatureHelper::isFeatureEnabled() lets shared code ship optional functionality safely disabled by default and toggled per site."
+  },
+  {
+    id: "dvo-l1-dvg-settings-purpose",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvgSettings", "Plugins"],
+    difficulty: 1,
+    question: "What is the purpose of the DvgSettings plugin system in dvg_core?",
+    hint: "Think about where site administrators go to configure DvO modules instead of hunting across /admin/config.",
+    answers: [
+      { text: "Group module settings forms into categorized tabs under /admin/dvg.", correct: true },
+      { text: "Store secret API credentials outside the database so they never appear in YAML files.", correct: false },
+      { text: "Synchronize environment variables automatically between DDEV and production servers.", correct: false }
+    ],
+    explanationShort: "DvgSettings centralizes administrator-facing module configuration forms under categorized tabs in the /admin/dvg section (general, advanced, and external services).",
+    explanationLong: "Instead of scattering custom configuration routes across disparate parts of the Drupal admin menu, DvO modules define DvgSettings plugins assigned to a DvgSettingsCategory. Administrators get one predictable settings hub, and modules can optionally tie form access to a DvO Feature or expose settings per subsite."
+  },
+  {
+    id: "dvo-l1-subsites-purpose",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Subsites", "Entities"],
+    difficulty: 1,
+    question: "When is DvG Subsite (dvg_subsite) the right tool on a municipality platform?",
+    hint: "Think about a district, department, or themed portal hosted inside one municipality's Drupal site.",
+    answers: [
+      { text: "When one municipality hosts distinct sections with their own navigation and branding.", correct: true },
+      { text: "Whenever onboarding a completely separate municipality onto the DvO monorepo.", correct: false },
+      { text: "When staging content changes for editors to preview before publishing them to the live site.", correct: false }
+    ],
+    explanationShort: "DvG Subsite models distinct sections—such as districts, departments, or intranets—inside one municipality's Drupal installation.",
+    explanationLong: "A subsite is a content entity within a single Drupal database that scopes content, menus, search, theme choice, and configuration overrides to a logical section of one municipality. Completely separate municipalities never share a subsite installation; each gets its own project repository under projects/."
+  },
+  {
+    id: "dvo-l1-themes-standard-layers",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes"],
+    difficulty: 1,
+    question: "How are themes typically layered from shared root to active site theme on a standard Toptasks project?",
+    hint: "Trace the chain from the shared composer package down to the theme assigned to a site or subsite.",
+    answers: [
+      { text: "Shared toptasks_base_theme -> project sub-base theme -> site or subsite sub-theme.", correct: true },
+      { text: "Drupal Claro -> project sub-theme -> shared toptasks_base_theme at the leaf level.", correct: false },
+      { text: "Every site copies toptasks_base_theme directly with no intermediate project theme.", correct: false }
+    ],
+    explanationShort: "Most projects inherit from shared toptasks_base_theme into a project sub-base theme, with leaf sub-themes below it for individual sites or subsites.",
+    explanationLong: "The shared composer-packages/toptasks_base_theme sits at the root for Toptasks projects. Above it, a project usually defines toptasks_sub_base_theme (and sometimes a subsites base layer), while individual sites and subsites use leaf toptasks_sub_theme* themes—unless a project builds on its own standalone SDC design-system base theme."
+  },
+  {
+    id: "dvo-l1-dds-design-agnostic-layer",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 1,
+    question: "What role do dds-* CSS classes and --dds-* custom properties play in the DvO Design System (DDS)?",
+    hint: "Consider how one shared paragraph grid module can work across municipalities with different design systems.",
+    answers: [
+      { text: "They give shared modules a design-agnostic layer that themes bind to local tokens.", correct: true },
+      { text: "They lock every municipality into identical colors and fonts with no theme overrides.", correct: false },
+      { text: "They compile Twig templates into React components inside the browser at runtime.", correct: false }
+    ],
+    explanationShort: "DDS decouples module markup and layout rules from any single municipality's brand by exposing dds-* classes and --dds-* CSS custom properties.",
+    explanationLong: "Modules like dvo_dds emit clean dds-* classes and style them through --dds-* custom properties backed by sensible fallback defaults. A municipality theme—or a future shared DDS/SDC base theme—can map those --dds-* properties to its own NL Design System tokens or replace templates with Single-Directory Components without changing module PHP."
+  },
+  {
+    id: "dvo-l1-config-dvg-basic-purpose",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Config"],
+    difficulty: 1,
+    question: "What is the job of the dvg_basic Config Split in dvg_config_basic?",
+    hint: "Think about content types, fields, and workflows that must stay uniform across every municipality.",
+    answers: [
+      { text: "Ship authoritative platform configuration that stays identical across all projects.", correct: true },
+      { text: "Store local DDEV developer overrides that are never committed to any Git repository.", correct: false },
+      { text: "Export sample nodes and media items so fresh environments start with demo content.", correct: false }
+    ],
+    explanationShort: "The dvg_basic split owns shared framework configuration—such as bundles, fields, and workflows—that every DvO site receives identically.",
+    explanationLong: "Platform-wide configuration listed in dvg_basic's complete_list lives in composer-packages/dvg/modules/dvg_config_basic/config/dvg_basic. On drush cim, that shared folder is authoritative so core platform structures stay aligned across tenants without each project maintaining diverging copies."
+  },
+  {
+    id: "dvo-l1-push-framework-purpose",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Queues"],
+    difficulty: 1,
+    question: "When should a DvO integration be built on the DvO Push framework (dvo_push)?",
+    hint: "Think about sending submitted data to a municipal backoffice or CRM that might briefly go offline.",
+    answers: [
+      { text: "When sending data asynchronously to external APIs with retries and status tracking.", correct: true },
+      { text: "When importing articles from an external knowledge base into Drupal as content nodes.", correct: false },
+      { text: "When fetching a live API response needed inline before rendering the current page.", correct: false }
+    ],
+    explanationShort: "DvO Push handles reliable, asynchronous outbound delivery to external systems with queuing, exponential backoff retries, and admin status visibility.",
+    explanationLong: "Municipal backoffice APIs and CRMs can experience downtime or slow responses. dvo_push queues outbound payloads, retries failures with exponential backoff, and gives administrators an overview of pending, sent, and failed items. Inbound syncing belongs in content/event import frameworks, and immediate request-time reads cannot be queued."
+  },
+  {
+    id: "dvo-l1-impact-script-purpose",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 1,
+    question: "What question does running npm run impact from the DvO workspace root answer before you finish a task?",
+    hint: "Remember that shared modules, base themes, and symlinks can affect far more sites than the one you tested.",
+    answers: [
+      { text: "Which projects, theme overrides, and CSS rules are affected by your current changes.", correct: true },
+      { text: "How many milliseconds your code adds to Time to First Byte on the production servers.", correct: false },
+      { text: "Which Composer dependencies have pending security advisories on drupal.org.", correct: false }
+    ],
+    explanationShort: "npm run impact traces changed modules, symlinked files, template overrides, Sass imports, and CSS specificity shifts across every project.",
+    explanationLong: "Because shared code in composer-packages/ reaches dozens of municipalities through module dependencies and theme inheritance chains, guessing the blast radius by eye is error-prone. npm run impact resolves symlinks and inspects project repos to report affected sites, overridden templates, imported partials, and selector specificity changes."
+  },
+  {
+    id: "dvo-l1-io-dvg-package-role",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 1,
+    question: "Why does composer-packages/io_dvg exist separately from composer-packages/dvg?",
+    hint: "Compare generic distribution modules with hosting glue or rollout hooks that name a specific project.",
+    answers: [
+      { text: "It holds hosting glue and rare customer-specific logic that must live in shared code.", correct: true },
+      { text: "It stores experimental contrib modules before they pass automated PHPStan checks.", correct: false },
+      { text: "It provides the frontend Storybook runner used to compile Single-Directory Components.", correct: false }
+    ],
+    explanationShort: "composer-packages/dvg must remain strictly customer-agnostic, whereas io_dvg is the designated shared package where environment glue and targeted rollout hooks may reference a project.",
+    explanationLong: "Generic packages like dvg and toptasks_base_theme must never know about individual municipalities. When shared infrastructure settings or an update hook synchronized with a dvg release genuinely must target a named project (via $_io_dvg_current_project), that code lives in composer-packages/io_dvg."
+  },
+  {
+    id: "dvo-l1-dds-ownership-split",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Config", "Themes"],
+    difficulty: 1,
+    question: "In the DDS architecture, what is the primary runtime job of the dvo_dds module versus a project or base theme?",
+    hint: "Separate default token-driven grid/component markup from brand-specific design-system bindings.",
+    answers: [
+      { text: "dvo_dds ships grid logic, templates, and --dds-* defaults; themes bridge or override them.", correct: true },
+      { text: "dvo_dds stores paragraph field YAML; themes run all PHP preprocess and layout logic.", correct: false },
+      { text: "dvo_dds compiles Sass for legacy sites, while themes handle access checks on grid paragraphs.", correct: false }
+    ],
+    explanationShort: "dvo_dds owns runtime grid rendering, preprocess services, and working --dds-* CSS defaults, while themes bind tokens to their design system or swap templates with SDCs.",
+    explanationLong: "DDS splits ownership cleanly across four layers: dvg_config_basic owns paragraph and field config, dvg_paragraphs owns editor form UX, dvo_dds owns runtime templates, services, and consumer CSS using --dds-* defaults, and the theme layer maps those tokens (or overrides templates with SDCs) for its design system."
+  },
+  {
+    id: "dvo-l1-sdc-component-anatomy",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DDS", "Render API"],
+    difficulty: 1,
+    question: "In DvO's modern NL Design System / SDC theme architecture, what lives together inside each directory under components/?",
+    hint: "Contrast Drupal core Single-Directory Components with scattering metadata, Twig, and styles across separate trees.",
+    answers: [
+      { text: "A .component.yml schema for props and slots, a .twig template, and optional .css/.js.", correct: true },
+      { text: "A Drupal block plugin PHP class, a database schema install file, and a route YAML file.", correct: false },
+      { text: "A Pattern Lab JSON data file, a global SCSS mixin bundle, and an exported View YAML.", correct: false }
+    ],
+    explanationShort: "Each Single-Directory Component co-locates its .component.yml prop/slot schema, Twig template, and auto-attached component assets in one folder.",
+    explanationLong: "Legacy Toptasks themes used Emulsify and Pattern Lab folders (@atoms, @molecules, @organisms) compiled into one global stylesheet. Modern NL Design System themes in DvO use Drupal Single-Directory Components where {name}.component.yml validates props and slots via JSON Schema alongside {name}.twig and co-located CSS."
+  },
+
+  // =========================================================================
+  // DvO (Drupal voor Overheden) — LEVEL 2: Why this approach exists (13 cards)
+  // =========================================================================
+  {
+    id: "dvo-l2-platform-two-repo-commits",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 2,
+    question: "Why does a task that edits both composer-packages/dvg and projects/<name> require two separate Git commits and Merge Requests?",
+    hint: "Check what git status at the workspace root sees when projects/ is listed in .gitignore.",
+    answers: [
+      { text: "projects/ is gitignored at the root because each project has its own .git repository.", correct: true },
+      { text: "GitLab blocks any single Merge Request that modifies both PHP and Twig files together.", correct: false },
+      { text: "Composer wipes uncommitted files in projects/ whenever a root branch is pushed.", correct: false }
+    ],
+    explanationShort: "Because projects/ is gitignored by the root repo and each municipality folder has its own .git history, root and project changes live in separate Git repositories.",
+    explanationLong: "Running git status or git commit at the workspace root only sees shared platform files; changes inside projects/<name> belong to that municipality's nested Git repository. Whenever work spans shared code (like dvo_dds) and a tenant's theme or config, each part must be committed, reviewed, and merged in its respective repository."
+  },
+  {
+    id: "dvo-l2-features-off-by-default",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Features", "DvO Best practices"],
+    difficulty: 2,
+    question: "Why must new optional functionality in composer-packages/dvg ship behind a DvO Feature that defaults to off?",
+    hint: "Remember that most dvg modules are already enabled across dozens of live municipality websites.",
+    answers: [
+      { text: "Shared dvg updates go to every site, so existing sites keep current behavior until opted in.", correct: true },
+      { text: "Drupal refuses to import configuration splits whenever a newly added plugin defaults to enabled.", correct: false },
+      { text: "PHPStan fails static analysis if a module registers routes without a feature attribute.", correct: false }
+    ],
+    explanationShort: "Defaulting new features to off lets all municipalities safely receive shared package updates without unexpected UX, content, or route changes.",
+    explanationLong: "Bugfixes, security fixes, and accessibility fixes belong on every site immediately, so they ship without a toggle. Optional new product capabilities, however, must not surprise dozens of live municipalities on their next update—gating them behind a disabled-by-default DvoFeature keeps existing behavior intact until a site opts in."
+  },
+  {
+    id: "dvo-l2-dvg-settings-feature-key",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvgSettings", "DvO Features"],
+    difficulty: 2,
+    question: "Why do DvgSettings plugins support a 'feature' key in their definition?",
+    hint: "Imagine what an admin sees under /admin/dvg when thirty optional modules are installed in code.",
+    answers: [
+      { text: "So a module's settings form stays hidden and inaccessible while its DvO Feature is off.", correct: true },
+      { text: "So saving the settings form automatically enables the feature on every subsite.", correct: false },
+      { text: "So configuration values are stored inside dvo_core_features.settings instead of their own file.", correct: false }
+    ],
+    explanationShort: "Linking a DvgSettings plugin to a feature ID hides and blocks its configuration page whenever that DvO Feature is disabled on the site.",
+    explanationLong: "When a feature is off for a municipality, nothing from that feature should leak into the admin UI—including dead settings forms for inactive functionality. Setting feature = 'my_module' on the DvgSettings plugin keeps its own configName intact while automatically gating access to the settings page on DvoFeatureHelper."
+  },
+  {
+    id: "dvo-l2-config-exclusions-why",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Config"],
+    difficulty: 2,
+    question: "Why did DvO introduce the dvg_basic_exclusions side split alongside the main dvg_basic Config Split?",
+    hint: "What happens on drush cim if a project tries to customize a config file that sits in dvg_basic's complete_list?",
+    answers: [
+      { text: "dvg_basic overwrites its listed configs on import, so exclusions let tenants override chosen items.", correct: true },
+      { text: "dvg_basic_exclusions strips dev-only modules like Devel out of production exports.", correct: false },
+      { text: "Config Split cannot export any file larger than 64 KB without splitting it into two separate folders.", correct: false }
+    ],
+    explanationShort: "Because dvg_basic is authoritative for everything in its complete_list, dvg_basic_exclusions intercepts tunable config names so per-site overrides in the project repo survive drush cim.",
+    explanationLong: "Any config in dvg_basic's complete_list ignores edits placed in a project's normal sync folder. Yet some configs (like dvo_core_features.settings or display profiles) need both a shared platform default on install and version-controlled per-site overrides. Because Config Split lacks native per-split exclusions, dvg_basic_exclusions captures those names into projects/<project>/sync/<site>/dvg_exclusions."
+  },
+  {
+    id: "dvo-l2-dds-spotlight-global-vs-on-demand",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Render API"],
+    difficulty: 2,
+    question: "In dvo_dds, most component CSS libraries attach on demand when their paragraph renders. Why is dvo_dds/spotlight attached globally when the DDS feature is on?",
+    hint: "Check where spotlight backgrounds and inverse/contrast classes appear besides dds_grid_row paragraphs.",
+    answers: [
+      { text: "Spotlights are also used outside grid rows, such as in the page footer and WYSIWYG blocks.", correct: true },
+      { text: "CSS custom properties inside spotlight.css fail to parse unless they are loaded in the HTML <head>.", correct: false },
+      { text: "Drupal's BigPipe drops any CSS library attached inside a paragraph preprocess hook.", correct: false }
+    ],
+    explanationShort: "Spotlight backgrounds and inverse/contrast rules apply to page-level regions like the footer as well as grid rows, whereas accordion or gallery CSS is only needed when that component appears.",
+    explanationLong: "Attaching accordion, gallery, media, or map CSS on demand avoids shipping unused styles on pages that never render those paragraphs (and BigPipe/render caching bubbles attached libraries fine). Spotlight classes and color modes, however, are shared by template regions like the site footer and companion modules, so dvo_dds attaches spotlight globally whenever DDS is enabled."
+  },
+  {
+    id: "dvo-l2-themes-directory-scope",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DvO Platform"],
+    difficulty: 2,
+    question: "On a multisite DvO project, what is the practical difference between placing a custom theme in htdocs/themes/custom versus htdocs/sites/<site>/themes/custom?",
+    hint: "Think about how Drupal discovers extensions across multisite directories inside one project repository.",
+    answers: [
+      { text: "htdocs/themes/custom is visible to every site in the project; sites/<site>/ scopes it to one.", correct: true },
+      { text: "Drupal 11 ignores sites/<site>/themes/custom entirely unless multisite legacy mode is turned on.", correct: false },
+      { text: "Themes in htdocs/themes/custom are shared across every municipality in the root repo.", correct: false }
+    ],
+    explanationShort: "A theme under projects/<name>/htdocs/themes/custom can be enabled by every multisite instance in that project, whereas sites/<site>/themes/custom restricts it to that single site.",
+    explanationLong: "Both paths live inside one municipality's project repo (neither leaks to other municipalities). Within a multisite project, htdocs/themes/custom makes a shared sub-base theme available to every site in that repo, while htdocs/sites/<site>/themes/custom isolates a theme meant strictly for one Drupal site directory."
+  },
+  {
+    id: "dvo-l2-patches-dvo-patch-scheme",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 2,
+    question: "Why do shared packages like dvg/dvg reference local patch files via dvo-patch:// URLs instead of relative filesystem paths?",
+    hint: "Compare where Composer runs in the root test-project versus inside projects/<project>.",
+    answers: [
+      { text: "Composer resolves relative paths from the root it runs in, whose depth differs per project.", correct: true },
+      { text: "Composer blocks relative file paths over HTTPS for security reasons unless a custom scheme is used.", correct: false },
+      { text: "GitLab CI strips .patch files from vendor directories unless fetched through dvo-patch://.", correct: false }
+    ],
+    explanationShort: "dvo-patch:// resolves patch files through Composer's installation manager by package name, keeping URLs and patches.lock.json hashes identical regardless of directory depth.",
+    explanationLong: "cweagans/composer-patches resolves relative paths against the working directory where Composer runs—which sits at a different depth in drupal-voor-gemeenten (test-project/htdocs/...) than in projects/<project> (htdocs/...). The iodigital-com/dvo-patches plugin translates dvo-patch://<package>/<path> via Composer's installation manager so one portable URL works everywhere."
+  },
+  {
+    id: "dvo-l2-subsites-block-per-theme",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Subsites", "Themes", "Config"],
+    difficulty: 2,
+    question: "Why must a subsite's custom theme have its own block placement configs (for example, for subsite search navigation) even when toptasks_base_theme already places those blocks?",
+    hint: "Ask how Drupal's Block module ties block placement entities to the active theme.",
+    answers: [
+      { text: "Block placements in Drupal are stored per theme and are not inherited at runtime from base themes.", correct: true },
+      { text: "dvg_subsite disables all of the base-theme regions whenever a visitor enters a path-prefixed subsite.", correct: false },
+      { text: "Config Split deletes base-theme block YAML whenever a subsite entity is created by an editor.", correct: false }
+    ],
+    explanationShort: "Drupal evaluates block placements strictly for the active theme rendering the page, so placements configured on a base theme do not automatically appear on a subsite's sub-theme.",
+    explanationLong: "Templates, libraries, and preprocess hooks inherit along the base theme chain, but block.block.* config entities belong to one specific theme machine name. When a subsite uses its own sub-theme, required DvO blocks (like search_addition_results_navigation, menus, and branding) must be placed for that sub-theme."
+  },
+  {
+    id: "dvo-l2-sdc-isolated-twig-context",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DDS", "Render API"],
+    difficulty: 2,
+    question: "Why do the conventions for DvO's SDC base themes (such as amsterdam_base_theme) require with_context = false on Twig include() calls and 'only' on {% embed %} tags?",
+    hint: "Think about what happens when an SDC accidentally relies on an ambient variable from node or page preprocess.",
+    answers: [
+      { text: "To prevent ambient template variables from leaking in, keeping component inputs explicit.", correct: true },
+      { text: "Because Drupal's SDC loader throws a fatal error whenever any ambient Twig context is passed.", correct: false },
+      { text: "To stop Drupal's render cache from bubbling cache tags out of child SDC templates.", correct: false }
+    ],
+    explanationShort: "Blocking ambient Twig context forces every SDC to receive data solely through its declared props and slots, keeping components predictable in Drupal and Storybook alike.",
+    explanationLong: "Without with_context = false or only, Twig passes every variable from the calling template into the child component. A component can then silently depend on a variable that happens to exist on a node page, only to break in Views, blocks, or Storybook. Isolating context guarantees the .component.yml contract is complete—while render arrays passed as props or slots still bubble cache metadata normally."
+  },
+  {
+    id: "dvo-l2-adrs-no-code-backlinks",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 2,
+    question: "Why does DvO's ADR policy forbid putting 'ADR-NNNN' references inside PHP comments, docblocks, or log messages?",
+    hint: "Compare linking from a timestamped decision record to code versus linking from living code back to an ADR.",
+    answers: [
+      { text: "Code comments should explain 'why' directly; code-to-ADR pointers silently rot when superseded.", correct: true },
+      { text: "PHPCS treats uppercase ADR identifiers in docblocks as invalid Drupal @see annotations.", correct: false },
+      { text: "ADR numbers reset per feature folder, so ADR-0015 is ambiguous outside docs/adrs/.", correct: false }
+    ],
+    explanationShort: "Comments in code must explain the reasoning in place so readers don't chase external docs whose decisions may later be superseded.",
+    explanationLong: "ADR numbers are globally unique and stable, and ADRs link forward to the classes and hooks they affect. The reverse link—scattering 'see ADR-0031' in PHP—forces maintainers out of the code and rots silently when a later ADR supersedes the original decision. Prose docs, specs, and MR descriptions may cross-link ADRs freely."
+  },
+  {
+    id: "dvo-l2-workflow-merge-not-rebase",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 2,
+    question: "When updating a feature branch with recent changes on main in DvO's GitLab Flow, why do the development agreements specify merging main rather than rebasing?",
+    hint: "Think about shared review history and conflict resolution on open GitLab Merge Requests.",
+    answers: [
+      { text: "Merging main preserves commit history and keeps Merge Request review diffs traceable.", correct: true },
+      { text: "GitLab branch pipelines skip PHPStan and PHPCS checks whenever a branch is force-pushed.", correct: false },
+      { text: "Composer's patches.lock.json file becomes corrupted whenever Git replays commits in a rebase.", correct: false }
+    ],
+    explanationShort: "Pulling and merging origin/main into your feature branch keeps commit SHAs intact and makes conflict resolution auditable in GitLab's Merge Request view.",
+    explanationLong: "In DvO's GitLab Flow, main is the single source of truth. Running git pull origin main merges upstream changes without rewriting pushed commits, preserving reviewer context on open Merge Requests and avoiding force-push hazards across collaborating developers and agents."
+  },
+  {
+    id: "dvo-l2-import-locked-fields",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Entities", "Forms"],
+    difficulty: 2,
+    question: "Why does dvo_content_import lock externally imported fields on destination nodes against manual edits in the Drupal form?",
+    hint: "Ask what happens to an editor's manual wording tweak the next time the external source syncs.",
+    answers: [
+      { text: "External syncs overwrite mapped fields, so locking prevents edits that would vanish later.", correct: true },
+      { text: "Drupal's Entity API cannot save a node revision if both cron and editors touch the same bundle.", correct: false },
+      { text: "Locked fields bypass Search API indexing so external content stays out of site search.", correct: false }
+    ],
+    explanationShort: "Locking source-owned fields makes ownership clear to editors and prevents wasted manual edits that the next scheduled import would silently overwrite.",
+    explanationLong: "When a node's body or metadata is synchronized from an upstream source like Salesforce Knowledge, that external system remains the source of truth for its mapped fields. Leaving those inputs editable sets a trap for content editors whose changes disappear on the next import run, while locally owned fields on the same node stay editable."
+  },
+  {
+    id: "dvo-l2-dds-ckeditor-dual-selectors",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 2,
+    question: "Why do DDS rich-text CSS bridges pair classes like .dds-heading--2 with .ck.ck-content h2 and load via ckeditor5-stylesheets?",
+    hint: "Compare the HTML stored while an editor types in CKEditor 5 with the HTML after Drupal runs text filters on view.",
+    answers: [
+      { text: "CKEditor holds bare HTML before output filters add .dds-* classes, and skips the global library.", correct: true },
+      { text: "CKEditor 5 runs inside a cross-origin iframe that strips every class starting with dds-.", correct: false },
+      { text: "Drupal's admin theme automatically converts all .dds-* rules into .ck-content rules at build time.", correct: false }
+    ],
+    explanationShort: "Because dvo_dds adds .dds-* classes only when rendering filtered output and CKEditor 5 does not load the front-end global library, editor styles need ckeditor5-stylesheets and .ck.ck-content selectors.",
+    explanationLong: "Inside CKEditor 5, editors work on plain elements (<h2>, <p>, <ul>) without the .dds-* classes that the output filter injects on the published page, and Drupal only loads stylesheets listed under ckeditor5-stylesheets in the default front-end theme's .info.yml. Pairing both selectors keeps WYSIWYG editing faithful to the published result."
+  },
+
+  // =========================================================================
+  // DvO (Drupal voor Overheden) — LEVEL 3: Which nearby idea it is not (13 cards)
+  // =========================================================================
+  {
+    id: "dvo-l3-features-vs-settings-vs-subsites",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Features", "DvgSettings", "Subsites"],
+    difficulty: 3,
+    question: "A new module in dvg needs an optional site-wide capability plus an API timeout value that each subsite may tune differently. How should those two concerns be modeled?",
+    hint: "Separate gating the capability itself from exposing a configurable value across subsites.",
+    answers: [
+      { text: "Gate the capability with a DvoFeature; expose the timeout via DvgSettings + dvg_subsite_settings.", correct: true },
+      { text: "Create one DvoFeature per subsite and hardcode the default API timeout in settings.php.", correct: false },
+      { text: "Use Drupal permissions for the site toggle and State API for the per-subsite API timeout.", correct: false }
+    ],
+    explanationShort: "DvO Features toggles optional site capabilities, while DvgSettings (opted into dvg_subsite_settings) handles admin-tunable values that can also vary per subsite.",
+    explanationLong: "Each DvO subsystem has a distinct boundary: DvoFeature turns optional functionality on or off per site; DvgSettings provides the admin form (with feature = '...' so it hides when the feature is off); and implementing the dvg_subsite_settings alter hooks lets subsites store per-subsite config overrides via dvg_subsite_config."
+  },
+  {
+    id: "dvo-l3-config-three-buckets",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Config"],
+    difficulty: 3,
+    question: "When adding configuration in DvO, how do you choose between dvg_basic only, dvg_basic_exclusions, and a project's normal sync directory?",
+    hint: "Ask two questions: does every site need a shared platform default, and may individual sites customize it?",
+    answers: [
+      { text: "Uniform platform config -> dvg_basic; shared default + site override -> exclusions; tenant-only -> sync.", correct: true },
+      { text: "Content entities -> dvg_basic; config entities -> exclusions; simple settings -> project sync.", correct: false },
+      { text: "Base theme settings -> dvg_basic; module settings -> exclusions; Views -> project sync.", correct: false }
+    ],
+    explanationShort: "Use dvg_basic when config never varies per site, dvg_basic_exclusions when sites need a shared default they may override in Git, and normal project sync when config is tenant-owned from the start.",
+    explanationLong: "Putting tenant-only config into dvg_basic forces it onto every municipality, while putting uniform platform config into dvg_basic_exclusions creates unnecessary maintenance across dozens of project repos. Reserve dvg_basic_exclusions specifically for configs that require both a shared default on install and versioned per-site overrides."
+  },
+  {
+    id: "dvo-l3-subsite-theme-content-vs-config",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Subsites", "Themes", "Config"],
+    difficulty: 3,
+    question: "How does choosing the theme for the main site differ from choosing the theme for a DvG Subsite?",
+    hint: "Compare system.theme.yml in config sync with where a subsite entity lives.",
+    answers: [
+      { text: "The main site's default theme lives in config; a subsite's chosen theme is stored on content.", correct: true },
+      { text: "Both choices live in system.theme.yml under separate multisite keys exported to Git.", correct: false },
+      { text: "Subsites cannot choose an installed theme and can only swap a few CSS variables via DvgSettings.", correct: false }
+    ],
+    explanationShort: "sync/<site>/.../system.theme.yml sets the site's default theme in config, whereas a subsite entity stores its selected theme as content in the database.",
+    explanationLong: "A subsite is a content entity created at /admin/content/subsite, so its theme selection lives in the database rather than YAML config—even though the theme's files and block placements are deployed in code and config. That is also why inspecting npm run themes -- <project> or subsite theme labels is essential before editing a theme."
+  },
+  {
+    id: "dvo-l3-dds-token-bridge-vs-class-bridge-vs-sdc",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 3,
+    question: "When theming DDS output onto a design system, how do a token bridge, a class bridge, and an SDC template override differ?",
+    hint: "Ask whether the module already ships CSS rules using --dds-* variables, ships only .dds-* class names, or needs different HTML.",
+    answers: [
+      { text: "Token bridges map --dds-* vars; class bridges style bare .dds-* classes; SDC overrides replace HTML.", correct: true },
+      { text: "Token bridges run in PHP preprocess; class bridges run in Twig; SDC overrides run in client JavaScript.", correct: false },
+      { text: "Token bridges are for Toptasks only; class bridges are for CKEditor only; SDCs replace dvo_dds.", correct: false }
+    ],
+    explanationShort: "Use a :root token bridge when dvo_dds ships CSS reading --dds-* properties, a class bridge when markup emits .dds-* classes without module CSS, and an SDC override when the design system owns different markup.",
+    explanationLong: "DDS minimizes template duplication by grading customization into three steps: if dvo_dds's HTML and layout CSS already match, a :root file mapping --dds-* to design-system tokens is enough (and is the only option for JS-rendered widgets like cookiesjsr). When a filter or template outputs .dds-* classes with no stylesheet (like rich text or mega menu), a class bridge binds those selectors to tokens. Only when a component needs design-system-specific DOM do you override the Twig template with SDCs."
+  },
+  {
+    id: "dvo-l3-customer-code-placement",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Best practices"],
+    difficulty: 3,
+    question: "One municipality requests a behavior tweak. How do you decide whether the code belongs in composer-packages/dvg, composer-packages/io_dvg, or projects/<name>?",
+    hint: "Distinguish reusable opt-in platform features, release-coupled customer hooks, and purely local project work.",
+    answers: [
+      { text: "Reusable opt-in -> dvg; release-coupled customer hook -> io_dvg; standalone customer code -> project.", correct: true },
+      { text: "Backend PHP -> dvg; frontend Twig/CSS -> projects/<name>; automated tests -> io_dvg.", correct: false },
+      { text: "Anything requested on a customer Jira ticket always goes exclusively in projects/<name>.", correct: false }
+    ],
+    explanationShort: "Generic opt-in capabilities belong in dvg, standalone single-tenant customizations belong in projects/<name>, and customer-targeted hooks coupled to a dvg release belong in io_dvg.",
+    explanationLong: "A customer ticket ID does not automatically mean project-only code: if other municipalities could benefit, build a generic, customer-agnostic option in dvg or toptasks_base_theme (off by default). If it is truly unique to one customer and independent of a new dvg release, keep it in projects/<name>. Only when customer-specific logic (like an update hook guarded by $_io_dvg_current_project) must roll out simultaneously with new dvg code does it go in io_dvg."
+  },
+  {
+    id: "dvo-l3-dds-gallery-vs-lightbox-split",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 3,
+    question: "Why does dvo_dds split its gallery assets into two separate libraries (dvo_dds/gallery and dvo_dds/gallery_lightbox) instead of bundling them as one?",
+    hint: "Consider a theme that keeps DDS's 1/2/3-column square thumbnail grid but brings its own Dialog and Image Slider SDCs.",
+    answers: [
+      { text: "So a theme overriding the template with its own slider/dialog can still reuse the grid CSS alone.", correct: true },
+      { text: "Because Drupal core forbids a single asset library from declaring both CSS files and JavaScript files.", correct: false },
+      { text: "So anonymous visitors get only the static grid while logged-in editors get the lightbox.", correct: false }
+    ],
+    explanationShort: "Keeping dvo_dds/gallery purely for the square thumbnail grid lets SDC themes attach that layout without loading duplicate slider and dialog CSS/JS from gallery_lightbox.",
+    explanationLong: "NL Design System themes often ship official Image Slider and Modal Dialog SDCs, yet ship no multi-column square gallery grid. Because dvo_dds separates gallery (the 1/2/3-column grid) from gallery_lightbox (the module's own dialog + slider wiring), an overridden paragraph template can attach dvo_dds/gallery for the grid and compose its own SDCs cleanly."
+  },
+  {
+    id: "dvo-l3-dds-spotlight-three-modes",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 3,
+    question: "How does DDS's --contrast spotlight mode differ from --inverse and from an unspotlighted grid row?",
+    hint: "Think about WCAG contrast when interactive blue links sit on a tinted-but-light background versus a dark background or white.",
+    answers: [
+      { text: "Unspotlighted keeps defaults; --inverse turns all text light; --contrast darkens interactive elements.", correct: true },
+      { text: "--contrast enables high-contrast OS mode globally, whereas --inverse swaps the left and right grid columns.", correct: false },
+      { text: "Unspotlighted uses --contrast by default, while --inverse applies only to full-bleed hero images.", correct: false }
+    ],
+    explanationShort: "On a light colored spotlight (inverse: false), body text is already dark enough, so --contrast darkens interactive elements whose standard blue fails contrast against the tint.",
+    explanationLong: "Every DDS row is in one of three states: no spotlight (standard colors on white, where interactive blue passes contrast), dds-spotlight--inverse (dark spotlight where all headings, prose, and links turn light), or dds-spotlight--contrast (light colored spotlight where prose stays dark and interactive links/controls shift to a dark contrast token)."
+  },
+  {
+    id: "dvo-l3-themes-hidden-inheritance-paths",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DvO Best practices"],
+    difficulty: 3,
+    question: "True or false: Checking 'base theme' in *.info.yml is sufficient to find every theme affected when you change a Twig component or Sass partial.",
+    hint: "Think about how @atoms/@other_theme Twig namespaces, Sass @import/@use paths, and library dependencies work.",
+    answers: [
+      { text: "False: themes also inherit via library dependencies, @theme Twig includes, and Sass imports.", correct: true },
+      { text: "True: Drupal isolates Twig namespaces and asset libraries strictly along the base theme key.", correct: false }
+    ],
+    explanationShort: "Beyond the base theme key in .info.yml, themes can pull in another theme's libraries, Twig namespaces (@atoms, @other_theme/...), and Sass partials directly.",
+    explanationLong: "In DvO projects, a theme can depend on another theme's asset library, include Twig files across namespaces, or compile Sass partials from a sibling or parent theme directory. That is why npm run impact and npm run themes inspect library dependencies, Twig includes, and Sass imports rather than only reading base theme keys."
+  },
+  {
+    id: "dvo-l3-themes-edit-lowest-covering-layer",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "Subsites", "DvO Best practices"],
+    difficulty: 3,
+    question: "A project has toptasks_base_theme -> toptasks_sub_base_theme -> toptasks_sub_base_theme_subsites -> toptasks_sub_theme_parken. Where does a visual tweak meant only for the Parken subsite belong?",
+    hint: "Apply the rule 'edit the lowest theme that covers every site or subsite the change is meant for.'",
+    answers: [
+      { text: "In toptasks_sub_theme_parken, so sibling subsites and the main site stay untouched.", correct: true },
+      { text: "In toptasks_sub_base_theme_subsites, gated behind a URL path check in preprocess_page.", correct: false },
+      { text: "In toptasks_sub_base_theme, because all custom project SCSS must compile in one bundle.", correct: false }
+    ],
+    explanationShort: "Always edit the lowest theme in the inheritance tree that covers every target site or subsite—for a single subsite, its own leaf sub-theme.",
+    explanationLong: "Putting a single-subsite change into toptasks_sub_base_theme or toptasks_sub_base_theme_subsites silently alters every other subsite (and potentially the main site) inheriting from that layer. Running npm run themes -- <project> shows the full tree so you can target the exact leaf theme."
+  },
+  {
+    id: "dvo-l3-cookies-toptasks-vs-dds-basetheme",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 3,
+    question: "dvo_cookies ships token-driven CSS libraries (dds_banner and dds_docs). Why does toptasks_base_theme disable them via libraries-override while a DDS/SDC base theme keeps them enabled?",
+    hint: "Remember that cookiesjsr renders the consent banner from JavaScript, and Toptasks predates DDS tokens.",
+    answers: [
+      { text: "Toptasks already styles cookiesjsr in legacy SCSS; a DDS theme bridges --dds-cookies-* tokens instead.", correct: true },
+      { text: "SDC themes cannot use libraries-override in .info.yml, so they must load every module CSS file.", correct: false },
+      { text: "dvo_cookies renders server-side SDCs on DDS themes but client-side JavaScript on Toptasks.", correct: false }
+    ],
+    explanationShort: "toptasks_base_theme predates DDS and has its own cookies-jsr-ui SCSS that would conflict, whereas a modern DDS theme keeps the module CSS and binds --dds-cookies-* to its design tokens.",
+    explanationLong: "Because cookiesjsr builds the banner DOM in JavaScript, there is no Twig template or SDC to override on either theme. dvo_cookies therefore exposes --dds-cookies-* custom properties on .cookiesjsr-* selectors. Legacy toptasks_base_theme switches those libraries off to avoid clashing with its older SCSS; new DDS themes simply provide a token bridge."
+  },
+  {
+    id: "dvo-l3-dds-views-gated-chassis",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes", "Render API"],
+    difficulty: 3,
+    question: "The shared all_content View is used across DvO sites both with and without the DDS feature enabled. How does dvo_dds style it as a DDS sub-grid without altering non-DDS sites?",
+    hint: "Look at when dvo_dds registers its views-view*--all-content templates and why it creates a fresh Attribute object.",
+    answers: [
+      { text: "It gates those View templates on the DDS feature and omits legacy view--* list layout classes.", correct: true },
+      { text: "It clones all_content into a separate all_content_dds View entity on every config import.", correct: false },
+      { text: "It overrides Views CSS globally with !important rules whenever any dds_views paragraph exists.", correct: false }
+    ],
+    explanationShort: "dvo_dds registers its all_content View chassis templates only when the DDS feature is on, replacing legacy view--teaser__ul classes with dds-sub-grid markup.",
+    explanationLong: "Projects without DDS rely on core/Toptasks View markup and classes like view--teaser__ul (which pre-DDS themes style with their own grid rules). Gating the views-view*--all-content templates on the DDS feature leaves non-DDS sites untouched, while starting a fresh attribute list on DDS sites prevents legacy theme grid rules from colliding with dds-sub-grid."
+  },
+  {
+    id: "dvo-l3-subsite-resolvers-three-ways",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Subsites", "Routing"],
+    difficulty: 3,
+    question: "Which three signals can SubsiteContextManager use to determine the active subsite for an incoming Drupal request?",
+    hint: "Think about how a visitor arrives at a subsite via URL prefix, custom hostname, or viewing a node directly.",
+    answers: [
+      { text: "First URL path segment, matching request domain, or the subsite field on the routed entity.", correct: true },
+      { text: "Logged-in user's assigned subsite role, browser session cookie, or HTTP Referer header.", correct: false },
+      { text: "Active theme name in system.theme.yml, language prefix, or Search API index ID.", correct: false }
+    ],
+    explanationShort: "SubsiteContextManager resolves the active subsite from a URL path prefix, a configured subsite domain, or the routed entity's subsite reference.",
+    explanationLong: "A subsite may live at a path prefix (like /parken), on its own domain, or be inferred when viewing a node assigned to that subsite. User-assigned subsites control editorial permissions rather than visitor context, and theme/config overrides are consequences of resolving the active subsite—not inputs to it."
+  },
+  {
+    id: "dvo-l3-push-vs-import-two-queues",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Queues"],
+    difficulty: 3,
+    question: "How does dvo_content_import's two-queue execution model differ from dvo_push's outbound queue?",
+    hint: "Contrast discovering changed remote records and importing them into Drupal with delivering a submitted payload outward.",
+    answers: [
+      { text: "dvo_content_import splits listing remote IDs from processing items; dvo_push queues outbound sends.", correct: true },
+      { text: "dvo_content_import runs synchronously during cron, whereas dvo_push is built on Drupal core Migrate.", correct: false },
+      { text: "dvo_content_import pushes local node edits upstream, whereas dvo_push pulls remote webhooks.", correct: false }
+    ],
+    explanationShort: "dvo_content_import uses a produce queue followed by a process queue (deliberately not core Migrate) to pull external content in, while dvo_push delivers local events/submissions out with backoff.",
+    explanationLong: "Per ADR-0003 and ADR-0007, DvO built dvo_content_import as a lightweight two-stage pipeline (the dvo_content_import.produce queue lists changed external items and enqueues individual dvo_content_import.process jobs) rather than using Drupal Migrate. Conversely, dvo_push handles outbound delivery from Drupal (like webform registrations to CRVS or backoffice APIs) with retry backoff."
+  },
+
+  // =========================================================================
+  // DvO (Drupal voor Overheden) — LEVEL 4: What fails with the shortcut (13 cards)
+  // =========================================================================
+  {
+    id: "dvo-l4-specificity-raising-without-where",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DDS", "DvO Best practices"],
+    difficulty: 4,
+    question: "What breaks across projects if you scope a rule in toptasks_base_theme or dvo_dds by writing .card:not(.card--compact) or .feature-x .teaser instead of wrapping the guard in :where()?",
+    hint: "Remember how project theme stylesheets usually win over base-theme and module CSS.",
+    answers: [
+      { text: "Higher specificity silently beats single-class project overrides that relied on source order.", correct: true },
+      { text: "Older browsers drop the entire stylesheet whenever :not() appears in a selector without :where().", correct: false },
+      { text: "Drupal's CSS aggregator moves higher-specificity selectors ahead of base resets.", correct: false }
+    ],
+    explanationShort: "Project themes override base-theme and module CSS using equal-weight single-class selectors that win only by loading later; raising specificity silently breaks their overrides.",
+    explanationLong: "Module CSS loads first, base-theme CSS second, and project sub-theme CSS last. Because downstream themes typically style .card or .teaser with a single class, adding a second class or :not() in shared CSS outranks every project's override. Wrapping guards in zero-specificity :where()—such as .card:where(:not(.card--compact))—scopes the rule without raising selector weight."
+  },
+  {
+    id: "dvo-l4-specificity-lowering-trap",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DvO Best practices"],
+    difficulty: 4,
+    question: "You simplify an existing selector in toptasks_base_theme from .node--full .teaser to .teaser. Why is lowering selector specificity also risky across existing projects?",
+    hint: "Think about dormant single-class rules in project themes that previously lost to .node--full .teaser.",
+    answers: [
+      { text: "Dormant project rules that used to lose to the heavier selector suddenly start winning.", correct: true },
+      { text: "Sass compilation fails whenever a base-theme partial reduces the selector depth on a class.", correct: false },
+      { text: "Drupal caches CSS selector weights in the database until the theme is reinstalled.", correct: false }
+    ],
+    explanationShort: "Lowering a shared selector's weight lets weaker project rules that previously had no visible effect suddenly win, causing unintended visual shifts.",
+    explanationLong: "Specificity changes cut both ways in a multi-tenant base theme: raising weight overrides intentional project customizations, while lowering weight activates forgotten or broader project rules that used to lose to the base theme's two-class selector. npm run impact flags base-theme and module selectors whose specificity moved in either direction."
+  },
+  {
+    id: "dvo-l4-feature-update-hook-without-exclusions-yaml",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Features", "Config", "Updates"],
+    difficulty: 4,
+    question: "A developer enables a DvO Feature in a database update hook for a customer, but does not update projects/<name>/sync/<site>/dvg_exclusions/dvo_core_features.settings.yml. What happens on deploy?",
+    hint: "Trace the order of drush updb and drush cim in a standard deployment pipeline.",
+    answers: [
+      { text: "The next drush cim overwrites active config from the YAML file and turns the feature back off.", correct: true },
+      { text: "Drupal refuses to run drush cim and aborts the pipeline with a ConfigImporterException.", correct: false },
+      { text: "dvg_basic_exclusions automatically exports database changes back into Git during deploy.", correct: false }
+    ],
+    explanationShort: "Because dvo_core_features.settings is managed as whole-file config in dvg_exclusions, drush cim wipes out any update-hook change not also committed to that YAML file.",
+    explanationLong: "Per-site feature state lives in projects/<name>/sync/<site>/dvg_exclusions/dvo_core_features.settings.yml. Unless an automated update pipeline immediately exports the database back to Git, running drush cim after drush updb imports the committed YAML over active config and silently disables the feature again."
+  },
+  {
+    id: "dvo-l4-subsite-hardcoded-search-url",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Subsites", "Themes", "Caching"],
+    difficulty: 4,
+    question: "A custom theme template renders a search form with a hard-coded action='/search' instead of building the URL from a route and adding the 'subsite' cache context. What goes wrong?",
+    hint: "Think about both where /subsite/ pages should submit searches and how Drupal caches the rendered block.",
+    answers: [
+      { text: "Visitors on path subsites get sent to main-site search, or share cached URLs across subsites.", correct: true },
+      { text: "Symfony's router rejects GET forms whose action attribute lacks a CSRF token in the query string.", correct: false },
+      { text: "Fast Autocomplete deletes its JSON index whenever a search request lacks a route token.", correct: false }
+    ],
+    explanationShort: "Hard-coding '/search' bypasses outbound subsite path processors (sending subsite visitors to the main site), and omitting the 'subsite' cache context leaks one cached URL across subsites.",
+    explanationLong: "Outbound path processors only add a path subsite's prefix (like /parken/zoeken) when URLs are generated through Url::fromRoute() or internal: URIs. And because the generated URL varies depending on which subsite is active, any render array printing it must declare the 'subsite' cache context."
+  },
+  {
+    id: "dvo-l4-dds-field-wrappers-reset",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes", "Render API"],
+    difficulty: 4,
+    question: "Why does dvo_dds replace Drupal core's default field.html.twig with field--dds-reset.html.twig on grid and cell fields—and why does toptasks_base_theme put field__text_long back on field_text?",
+    hint: "Check how adjacent-sibling selectors like .dds-grid + .dds-grid work, and how Toptasks scopes CKEditor styles.",
+    answers: [
+      { text: "Core's wrapper divs break sibling grid CSS, while Toptasks scopes prose rules under .text-long.", correct: true },
+      { text: "Core's field.html.twig strips paragraph cache tags, while Toptasks needs .text-long for its Views.", correct: false },
+      { text: "CSS Grid ignores items inside div tags, while CKEditor 5 crashes without a .text-long wrapper.", correct: false }
+    ],
+    explanationShort: "Extra field <div> wrappers break adjacent-sibling spotlight/grid selectors and direct grid-cell children, whereas Toptasks still needs .text-long on field_text to scope its legacy WYSIWYG styles.",
+    explanationLong: "Consecutive grid rows (.dds-grid) and page grids (.pt-grid) must be DOM siblings so selectors like .dds-grid.dds-spotlight + .dds-grid.dds-spotlight work, and components inside cells expect no stray field <div> in between. field--dds-reset outputs item.content bare. Because legacy toptasks_base_theme scopes rich-text headings and lists under .text-long, it restores field__text_long specifically on field_text while keeping the grid resets."
+  },
+  {
+    id: "dvo-l4-dds-programmatic-paragraph-behaviors",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Entities", "DvO Best practices"],
+    difficulty: 4,
+    question: "When creating dds_grid_row paragraphs programmatically via Paragraph::create() in a script or migration, what happens if you leave the 'behaviors' field unset?",
+    hint: "Compare what the paragraph edit form saves by default with what entity_type_behaviors runs when 'behaviors' is empty.",
+    answers: [
+      { text: "GridRowAdvancedDisplay::view() never runs, so the row gets no spacing modifier classes.", correct: true },
+      { text: "Paragraph::save() automatically populates site-default spacing behaviors from dvo_dds.settings.", correct: false },
+      { text: "Drupal throws an EntityStorageException because behaviors is a required base field on paragraphs.", correct: false }
+    ],
+    explanationShort: "Unlike the editorial form, Paragraph::create() leaves behaviors empty, causing entity_type_behaviors to skip GridRowAdvancedDisplay::view() and render the row with zero padding.",
+    explanationLong: "When an editor saves a row through the UI, the behavior plugin form writes default values ('spacing_top' => 'default', etc.). In code, Paragraph::create() saves cleanly with an empty behaviors field—so entity_type_behaviors never invokes the display behavior and not even site-wide default spacing classes are added. Always explicitly set dvo_dds_grid_row_advanced_display (and layout) in code."
+  },
+  {
+    id: "dvo-l4-sdc-editing-imported-component-css",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DDS", "DvO Best practices"],
+    difficulty: 4,
+    question: "In an NL Design System SDC base theme, why must you never put Drupal- or DDS-specific CSS tweaks inside components/<name>/<name>.css?",
+    hint: "Check how component .css files are maintained when upstream design-system npm packages are updated.",
+    answers: [
+      { text: "Component .css files are synced from upstream packages, so sync:css overwrites local edits.", correct: true },
+      { text: "Drupal core ignores any CSS file inside components/ unless the theme uses Pattern Lab.", correct: false },
+      { text: "SDC JSON Schema validation rejects any component whose .css file contains --dds-* variables.", correct: false }
+    ],
+    explanationShort: "Upstream SDC .css files are verified by sync:css:check and overwritten on design-system updates; all DvO/Drupal glue styles belong in css/dds/.",
+    explanationLong: "To keep upgrades to upstream design-system packages clean and verifiable in CI (npm run check -> sync:css:check), 1:1 component stylesheets in components/ remain untouched upstream imports. Any Drupal integration glue—webform spacing, media modifiers, or token bridges—lives separately under css/dds/ and is attached via the theme's libraries.yml or base.css."
+  },
+  {
+    id: "dvo-l4-dds-mobile-grid-column-overflow",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 4,
+    question: "DDS's responsive grid defines 4 columns on mobile, 8 at medium, and 12 at wide. What breaks on phones if a custom layout puts span-12 on the mobile base tier instead of span-4?",
+    hint: "Think about what CSS Grid does when an item spans 12 tracks inside a 4-column explicit grid.",
+    answers: [
+      { text: "CSS Grid creates 8 implicit tracks whose column gaps push the row wider than the viewport.", correct: true },
+      { text: "CSS Grid clamps spans to the explicit column count, so span-12 behaves identically to span-4.", correct: false },
+      { text: "dvo_dds rewrites span-12 to span-4 on mobile in JavaScript after DOMContentLoaded fires.", correct: false }
+    ],
+    explanationShort: "Spanning 12 columns in a 4-column mobile grid forces 8 extra implicit tracks; even at 0 width, their column gaps accumulate and push the layout past the phone screen.",
+    explanationLong: "CSS Grid does not clamp a grid-column: span 12 declaration to the 4 explicit tracks defined at the mobile tier. Instead, it creates 8 implicit columns and inserts a column-gap between every one of them—causing horizontal overflow on narrow viewports. Full width in DDS is span-4 on mobile, span-8-medium on tablet, and span-12-wide on desktop."
+  },
+  {
+    id: "dvo-l4-feature-off-cache-tag-and-leaks",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Features", "Caching", "Security"],
+    difficulty: 4,
+    question: "A block checks DvoFeatureHelper::isFeatureEnabled('my_feature') to decide whether to render, but omits config:dvo_core_features.settings from its cache tags. What fails?",
+    hint: "Imagine an administrator toggling the checkbox at /admin/dvg/advanced/features on a warm production cache.",
+    answers: [
+      { text: "Cached pages keep hiding or showing the block after an admin toggles the feature form.", correct: true },
+      { text: "DvoFeatureHelper disables Dynamic Page Cache on every page where isFeatureEnabled() runs.", correct: false },
+      { text: "Drupal automatically bubbles config tags from every service call into the active render array.", correct: false }
+    ],
+    explanationShort: "Calling a helper boolean in PHP does not auto-bubble config cache tags; without config:dvo_core_features.settings, cached output stays stale when an admin flips the toggle.",
+    explanationLong: "Drupal cannot automatically tell which render array depended on a boolean returned by isFeatureEnabled(). Any block, menu, preprocess, or access result whose output changes with a DvO Feature must attach the config:dvo_core_features.settings cache tag (and routes, permissions, and cron jobs must also check the feature so nothing leaks while off)."
+  },
+  {
+    id: "dvo-l4-patches-missing-relock-hash-mismatch",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Security"],
+    difficulty: 4,
+    question: "You update a patch file inside composer-packages/dvg/patches/webform/ to apply cleanly to a new Webform release, commit the .patch file, and push without running composer patches-relock. What happens?",
+    hint: "Check how Composer verifies patch integrity during CI and project builds.",
+    answers: [
+      { text: "Composer fails the build with a HashMismatchException because patches.lock.json pins sha256.", correct: true },
+      { text: "Composer silently applies the old cached patch from GitHub instead of your updated local file.", correct: false },
+      { text: "GitLab CI regenerates patches.lock.json automatically and commits it back to your branch.", correct: false }
+    ],
+    explanationShort: "patches.lock.json pins the SHA-256 hash of every patch; modifying a .patch file without running composer patches-relock triggers a deliberate HashMismatchException.",
+    explanationLong: "Composer Patches v2 locks exact SHA-256 digests in patches.lock.json so upstream or local patch content can never change unnoticed. Whenever you add or edit a patch in composer-packages/dvg or a project repo, you must run composer patches-relock and composer install and commit the updated lockfile alongside the patch."
+  },
+  {
+    id: "dvo-l4-programmatic-node-moderation-and-search-field",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Best practices", "Entities"],
+    difficulty: 4,
+    question: "When creating DvO content nodes programmatically in a script, which two pitfalls commonly cause either a database error or an unexpectedly unpublished page?",
+    hint: "Check field_exclude_from_search's two columns and how Content Moderation treats status => 1.",
+    answers: [
+      { text: "Omitting value_external on field_exclude_from_search, and setting status=1 without moderation_state.", correct: true },
+      { text: "Setting uid=1 on cron imports, and passing a path alias without clearing the router first.", correct: false },
+      { text: "Saving paragraphs before the parent node, and omitting the default language code 'nl'.", correct: false }
+    ],
+    explanationShort: "field_exclude_from_search requires both value and value_external (NOT NULL), and Content Moderation saves new nodes as drafts unless moderation_state is set to 'published'.",
+    explanationLong: "The node form fills in defaults that Node::create() does not: leaving value_external empty on field_exclude_from_search triggers a NOT NULL SQL constraint failure, setting status => 1 alone still creates a draft under Content Moderation unless moderation_state => 'published' is set, and custom aliases get overwritten by Pathauto unless 'pathauto' => 0 is passed."
+  },
+  {
+    id: "dvo-l4-exclusions-missing-hook-install-export",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Config", "Updates"],
+    difficulty: 4,
+    question: "You add a new module's config pattern to dvg_basic_exclusions and ship default YAML in the module's config/install, but do not export it to the dvg_exclusions folder in hook_install(). What happens on the next drush cim?",
+    hint: "Remember what Config Split concludes when it owns a wildcard pattern in complete_list and sees no matching file in its split folder.",
+    answers: [
+      { text: "The split owns the pattern, sees no file in dvg_exclusions, and deletes the config on drush cim.", correct: true },
+      { text: "Drupal falls back to reading the module's config/install YAML on every future drush cim.", correct: false },
+      { text: "Config Split copies the active database config into sync/dvg_exclusions automatically during import.", correct: false }
+    ],
+    explanationShort: "Because dvg_basic_exclusions owns every config name matching its complete_list, any matching config missing from the project's dvg_exclusions folder is deleted on the next drush cim.",
+    explanationLong: "config/install is only read once when the module is installed. Once a pattern belongs to dvg_basic_exclusions, drush cim expects a file in projects/<project>/sync/<site>/dvg_exclusions/ for every config matching that pattern—missing file means 'deleted.' Exporting the installed default there in hook_install() lets developers commit it so it survives future imports."
+  },
+  {
+    id: "dvo-l4-sdc-bare-region-block-wrapper",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DDS", "Render API"],
+    difficulty: 4,
+    question: "In an SDC base theme, page.html.twig pipes a region directly into a header or footer component slot that renders a flex row or <ul>. What breaks if blocks in that region use core's block.html.twig?",
+    hint: "Picture what happens to flex/grid items or valid HTML when Drupal wraps the menu links in an extra <div> or <nav>.",
+    answers: [
+      { text: "Core's wrapper <div> or <nav> becomes the single child container, collapsing the flex/list layout.", correct: true },
+      { text: "Twig throws a slot schema validation error whenever a block render array contains any HTML attributes.", correct: false },
+      { text: "Contextual links strip component classes from sibling elements inside the page template.", correct: false }
+    ],
+    explanationShort: "An extra block <div> or menu <nav> sits between the SDC's flex/grid/<ul> container and its expected items, breaking both layout tracks and HTML structure.",
+    explanationLong: "Design-system header and footer SDCs expect direct link items inside their flex, grid, or <ul> slots. Wrapping those items in Drupal's default block <div> turns multiple items into one wrapper box (collapsing rows into a column), which is why SDC themes define bare regions that route blocks through a wrapper-less block--region--* template."
+  },
+
+  // =========================================================================
+  // DvO (Drupal voor Overheden) — LEVEL 5: Tradeoffs & deep mechanics (13 cards)
+  // =========================================================================
+  {
+    id: "dvo-l5-dds-to-basetheme-evolution",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes", "DvO Platform"],
+    difficulty: 5,
+    question: "Why does dvo_dds ship working consumer CSS with fallback --dds-* literals alongside module Twig templates while DvO transitions from toptasks_base_theme toward an NL Design System / SDC base-theme model?",
+    hint: "Think about supporting legacy Toptasks projects, standalone municipality SDC themes, and a future shared DDS base theme from one shared module.",
+    answers: [
+      { text: "One module renders out of the box today while letting SDC themes bridge tokens or swap templates.", correct: true },
+      { text: "Drupal forbids base themes from defining CSS custom properties unless a module declares them first.", correct: false },
+      { text: "Shipping CSS in dvo_dds eliminates the need for any theme layer once Toptasks is retired.", correct: false }
+    ],
+    explanationShort: "Shipping design-agnostic markup and --dds-* fallback tokens in dvo_dds lets existing Toptasks sites, custom SDC themes, and a future DDS base theme share one editorial and runtime contract.",
+    explanationLong: "Across 30+ municipality repos, DvO cannot flip every project from Pattern Lab (toptasks_base_theme) to Single-Directory Components overnight. By putting paragraph layouts, data providers, and --dds-* fallback CSS in dvo_dds—without hardcoding customer specifics—any site renders valid layouts immediately, while NL Design System / SDC base themes cleanly bind --dds-* tokens or override individual templates with SDCs."
+  },
+  {
+    id: "dvo-l5-spotlight-css-var-alias-resolution",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes"],
+    difficulty: 5,
+    question: "On :root, a design system declares --ds-links-color: blue and --ds-card-link-color: var(--ds-links-color). Inside .dds-spotlight--inverse, why does setting --ds-links-color: white leave card links blue?",
+    hint: "Recall at which DOM element CSS resolves var() references inside custom property declarations.",
+    answers: [
+      { text: "--ds-card-link-color resolved its var() on :root and inherits down already computed as blue.", correct: true },
+      { text: "CSS custom properties inside class selectors cannot override custom properties set on :root.", correct: false },
+      { text: "Shadow DOM boundaries around Drupal SDCs block inherited custom properties coming from parent rows.", correct: false }
+    ],
+    explanationShort: "CSS resolves var() at the element where a custom property is declared (:root), so descendants inherit --ds-card-link-color as its resolved value unless you rebind --ds-card-link-color itself.",
+    explanationLong: "Drupal SDCs do not use Shadow DOM, and class selectors override :root custom properties fine—provided you override the exact property the component's rule reads. Because --ds-card-link-color is declared on :root, the browser resolves var(--ds-links-color) on :root and passes that resolved color down the tree. Rebinding the upstream alias on .dds-spotlight--inverse never re-evaluates :root declarations; you must rebind --ds-card-link-color directly."
+  },
+  {
+    id: "dvo-l5-deploy-new-subtheme-cache-before-cim",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "Config", "Updates"],
+    difficulty: 5,
+    question: "A deployment adds a brand-new sub-theme folder in code along with its block.block.* YAML files. Why does running config:import BEFORE drush cr leave every block of that sub-theme disabled—even after a later drush cr?",
+    hint: "Trace the cached theme extension list -> the theme's region list -> Block::preSave().",
+    answers: [
+      { text: "Cached theme info lacks the new theme, so it has no regions and Block::preSave() disables them.", correct: true },
+      { text: "Config Split skips all block.block.* files whenever their theme is missing from system.theme.yml.", correct: false },
+      { text: "Drupal's theme installer deletes unrecognized block configs from sync/ until drush cr runs.", correct: false }
+    ],
+    explanationShort: "Before drush cr, the database-cached theme extension list doesn't know the new folder on disk, so the theme has no known regions and Block::preSave() saves every imported block disabled.",
+    explanationLong: "ThemeExtensionList caches discovered themes in the database (the bootstrap cache bin), which code deployment alone does not clear. During config:import, Block::preSave() looks up the block's theme through the theme handler and checks its region against that theme's region list; getting no regions for the unknown theme, Drupal resets the region and disables the block in active config. Running drush cr afterward refreshes the theme cache but cannot re-enable already-saved disabled blocks—drush cr must run before config:import (or a second import is needed)."
+  },
+  {
+    id: "dvo-l5-subsite-language-prefix-edge-reordering",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Subsites", "Routing"],
+    difficulty: 5,
+    question: "Path subsites use URLs like /subsite/en/page rather than /en/subsite/page, yet Drupal core's path processors assume language comes first. How does dvg_subsite reconcile the two without rewriting every processor?",
+    hint: "Look at what happens at the outer edges of the inbound/outbound path processor chain and in URL language negotiation.",
+    answers: [
+      { text: "Edge processors swap /subsite/en <-> /en/subsite around core's chain, plus custom URL negotiation.", correct: true },
+      { text: "An Nginx rewrite rule reorders /subsite/en to /en/subsite before PHP ever sees the incoming HTTP request.", correct: false },
+      { text: "dvg_subsite creates duplicate path aliases for every language-and-subsite permutation on save.", correct: false }
+    ],
+    explanationShort: "SubsiteLanguagePathProcessor translates between /subsite/lang at the outer edges and /lang/subsite inside the processor chain, paired with SubsiteLanguageNegotiationUrl.",
+    explanationLong: "Inbound at priority 350 (before language processing at 300), SubsiteLanguagePathProcessor rewrites /test/en/page to /en/test/page so core and alias processors work unchanged; outbound at priority 50, it moves the language prefix back behind the subsite. Because core's URL language negotiator inspects the raw request outside path processors, SubsiteLanguageNegotiationUrl also overrides language-url to detect the language segment behind a subsite."
+  },
+  {
+    id: "dvo-l5-dds-theme-registry-alter-when-off",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Themes", "Render API"],
+    difficulty: 5,
+    question: "dvo_dds defines per-bundle teaser preprocess functions (like dvo_dds_preprocess_node__news__teaser). When the DDS feature is disabled on a site, why must dvo_dds_theme_registry_alter() remove those bundle hooks?",
+    hint: "Consider what Drupal's theme registry auto-creates simply because a preprocess function with that name exists in an enabled module.",
+    answers: [
+      { text: "Drupal auto-registers hooks for preprocess functions, which would override the theme's plain teaser.", correct: true },
+      { text: "Leaving unused preprocess functions registered causes fatal TypeErrors when DDS services are off.", correct: false },
+      { text: "Views refuses to cache teaser rows whenever multiple modules preprocess the same node bundle.", correct: false }
+    ],
+    explanationShort: "Drupal's theme registry automatically creates specific node__<bundle>__teaser entries from module preprocess function names, which would hijack template resolution on non-DDS sites unless pruned.",
+    explanationLong: "Even when dvo_dds skips registering its own templates while the DDS feature is off, Drupal scans enabled modules for hook_preprocess_HOOK functions and auto-creates registry entries for node__<bundle>__teaser. Without dvo_dds_theme_registry_alter() dropping those auto-created entries when DDS is off, they outrank the active theme's generic node--teaser.html.twig."
+  },
+  {
+    id: "dvo-l5-bare-region-prepend-vs-append-suggestion",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "Render API"],
+    difficulty: 5,
+    question: "When an SDC base theme adds a bare-region suggestion (block__region__<region>) to strip wrapper divs, why does it prepend the suggestion if a theme template already matched, yet append it if only a module template matched?",
+    hint: "Remember that Drupal picks the LAST matching suggestion, and core's system module ships block--system-menu-block.html.twig.",
+    answers: [
+      { text: "Prepending lets specific theme block templates win, while appending beats core's menu <nav> template.", correct: true },
+      { text: "Drupal evaluates theme suggestions first-to-last for themes but last-to-first for core modules.", correct: false },
+      { text: "Appending a suggestion when a theme template exists triggers an infinite Twig embed recursion.", correct: false }
+    ],
+    explanationShort: "Suggestions resolve last-match-wins: prepending preserves intentional plugin/ID overrides from the theme chain, while appending overrides module templates like block--system-menu-block.html.twig.",
+    explanationLong: "If the active theme chain intentionally provides a template for a specific block plugin or ID in that region, prepending block__region__<region> keeps it as a fallback so the specific theme template still wins. But if the only existing match comes from a module (registry type not ending in theme_engine)—such as core's block--system-menu-block.html.twig with its <nav> and <h2>—appending ensures the bare wrapper-less template wins instead."
+  },
+  {
+    id: "dvo-l5-dds-spotlight-continues-in-php",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DDS", "Render API", "Config"],
+    difficulty: 5,
+    question: "Two consecutive DDS spotlight blocks of the exact same color drop the margin between them so they merge visually, while two different spotlight colors keep whitespace. Why does PHP add .dds-spotlight--continues instead of pure CSS?",
+    hint: "Remember where spotlight color keys live in DvO and whether CSS selectors can compare two arbitrary configured class names.",
+    answers: [
+      { text: "Spotlight color keys come from config, and CSS cannot test whether two arbitrary color classes match.", correct: true },
+      { text: "Adjacent-sibling (+) selectors fail whenever Drupal's BigPipe streams paragraphs asynchronously.", correct: false },
+      { text: "Browsers ignore margin-block-start: 0 rules whenever custom properties are used for spacing.", correct: false }
+    ],
+    explanationShort: "Because spotlight color machine names are configurable per site, static CSS cannot compare whether two adjacent blocks share the same color without enumerating unknown classes.",
+    explanationLong: "Sibling adjacency already works thanks to field--dds-reset, so CSS easily targets .dds-grid.dds-spotlight + .dds-grid.dds-spotlight. However, spotlight colors come from configuration, so static CSS has no selector for 'previous sibling has the same dynamic dds-spotlight--<color> class as me' (especially across nested .pt-grid boundaries). SpotlightHelper::continuesPrevious() inspects adjacent blocks in PHP and marks matching continuations with dds-spotlight--continues."
+  },
+  {
+    id: "dvo-l5-io-dvg-release-coupled-feature-rollout",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "DvO Features", "Updates"],
+    difficulty: 5,
+    question: "A new DvO Feature in composer-packages/dvg must go live enabled for one specific municipality in the exact same deployment that ships the new dvg release. How is that coordinated cleanly?",
+    hint: "Combine the no-customer-code rule in dvg with how drush updb and dvg_exclusions interact during deployment.",
+    answers: [
+      { text: "Add a project-guarded update hook in io_dvg and ensure the project's dvg_exclusions YAML matches.", correct: true },
+      { text: "Check the customer's domain inside dvo_core_features so the feature defaults to true there.", correct: false },
+      { text: "Enable the feature in composer-packages/dvg-project-template and run drush cim --partial.", correct: false }
+    ],
+    explanationShort: "Guarding an update hook with $_io_dvg_current_project in io_dvg_config_settings.install activates the feature with the dvg release, while matching dvg_exclusions YAML keeps drush cim consistent.",
+    explanationLong: "composer-packages/dvg cannot name the customer, and editing the project's YAML before dvg ships would reference a feature plugin that doesn't exist yet. Putting the update hook in io_dvg_config_settings.install (checked against $_io_dvg_current_project) lets the AUTO-UPDATE pipeline enable it and export the updated dvo_core_features.settings.yml—and if deployed outside AUTO-UPDATE, updating that YAML in the project repo keeps subsequent config imports aligned."
+  },
+  {
+    id: "dvo-l5-sdc-committed-assets-vs-composer-build",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DvO Platform", "DvO Best practices"],
+    difficulty: 5,
+    question: "Why does an NL Design System SDC base theme in a project repo commit its copied upstream tokens, icons, and component CSS to Git—and deliberately omit a package.json 'build' script that composer install would run?",
+    hint: "Think about what composer-asset-compiler would do on every developer's composer install when an upstream npm minor release lands.",
+    answers: [
+      { text: "So upstream design-system bumps stay explicit, reviewed steps instead of noisy install diffs.", correct: true },
+      { text: "Because GitLab CI runners block Node.js execution during all Drupal deployment pipelines.", correct: false },
+      { text: "Because Drupal's asset resolver refuses to serve gitignored CSS files from inside custom themes.", correct: false }
+    ],
+    explanationShort: "Committing upstream design-system assets and running build:assets/sync:css only during deliberate version bumps prevents unreviewed upstream changes from polluting unrelated composer installs.",
+    explanationLong: "If composer-asset-compiler ran an asset copy script inside the SDC theme on every composer install, any routine developer install could rewrite tokens, icons, or component CSS without going through the theme's deviation checks and Storybook review. Committing the synced assets makes every design-system upgrade an explicit, linted Merge Request."
+  },
+  {
+    id: "dvo-l5-sdc-fieldset-min-inline-size-and-prose-img",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "DDS", "Forms"],
+    difficulty: 5,
+    question: "Why do Drupal forms rendered with design-system FieldSet SDCs overflow horizontally on mobile unless css/dds/ adds min-inline-size: 0 on the FieldSet wrapper?",
+    hint: "Combine the browser UA stylesheet's default rule on <fieldset> with Drupal's default size='60' / cols='60' attributes on inputs.",
+    answers: [
+      { text: "UA fieldsets use min-inline-size: min-content, so Drupal's size='60' inputs lock them near 593px wide.", correct: true },
+      { text: "Drupal's Form API injects inline width: 600px styles onto every <fieldset> unless overridden.", correct: false },
+      { text: "CSS Grid tracks expand infinitely whenever a <legend> element wraps onto a second text line.", correct: false }
+    ],
+    explanationShort: "Browsers give <fieldset> min-inline-size: min-content by default, and Drupal's size='60' attributes inflate that intrinsic minimum despite percentage max-width rules—requiring a reset in css/dds/.",
+    explanationLong: "Upstream design systems rarely emit HTML size='60' attributes, so they never hit the browser quirk where <fieldset>'s UA min-inline-size: min-content ignores child percentage max-inline-size while computing intrinsic width. Because upstream SDC CSS cannot be edited directly (sync:css would overwrite it), the min-inline-size: 0 reset lives in theme-authored css/dds/dds-forms.css."
+  },
+  {
+    id: "dvo-l5-csp-style-src-attr-inline-styles",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Themes", "Security", "DDS"],
+    difficulty: 5,
+    question: "When converting upstream React design-system components to Drupal SDCs on DvO, why do patterns that rely on inline style attributes (like style='background-image: ...' thumbnails) break for visitors?",
+    hint: "Check how Drupal's Content Security Policy headers treat inline style attributes on rendered markup.",
+    answers: [
+      { text: "Strict style-src-attr CSP rules block inline style attributes, leaving thumbnails or alignment broken.", correct: true },
+      { text: "Twig's autoescape filter strips every style attribute from HTML tags before sending responses.", correct: false },
+      { text: "Drupal's CSS aggregator rewrites inline URLs inside style attributes to broken relative paths.", correct: false }
+    ],
+    explanationShort: "DvO's Content Security Policy restricts inline style attributes (style-src-attr), so SDC adaptations replace inline background-image or alignment styles with real <img> elements or CSS classes.",
+    explanationLong: "Twig does not strip style attributes, so inline styles often appear to work in isolated upstream Storybook builds—then silently vanish on the Drupal site when the browser enforces CSP style-src-attr. Replacing inline background thumbnails with semantic <img> tags (and moving inline alignment rules into css/dds/) satisfies CSP and improves accessibility."
+  },
+  {
+    id: "dvo-l5-subsite-alias-manager-main-site-views",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["Subsites", "Routing"],
+    difficulty: 5,
+    question: "A View page at /search has the main-site alias /zoeken. When a visitor opens /parken/zoeken on a path subsite, why must dvg_subsite_alias use a dedicated lookup fallback instead of relying only on the wrapped alias manager?",
+    hint: "Ask which aliases the subsite-scoped alias repository can see while a subsite is active.",
+    answers: [
+      { text: "While a subsite is active, the scoped repository hides main-site aliases unless fallback ignores scope.", correct: true },
+      { text: "Views routes bypass Drupal's inbound path alias processor whenever a URL has more than one segment.", correct: false },
+      { text: "Pathauto deletes main-site View aliases whenever a new subsite entity is saved in the database.", correct: false }
+    ],
+    explanationShort: "Because dvg_subsite_alias scopes repository lookups to the active subsite first, resolving shared main-site View aliases like /zoeken on /subsite/zoeken requires an explicit unscoped fallback.",
+    explanationLong: "Path aliases in dvg_subsite_alias carry a subsite ID so two subsites can reuse the same slug for their own nodes without colliding. However, shared system/View aliases like /zoeken belong to the main site: once SubsitePathProcessor strips /parken and activates the subsite context, a purely subsite-scoped lookup wouldn't see /zoeken unless AliasManager falls back across scope for shared routes."
+  },
+  {
+    id: "dvo-l5-exclusions-install-syncing-and-existing-file-guards",
+    category: "DvO (Drupal voor Overheden)",
+    tags: ["DvO Platform", "Config", "Updates"],
+    difficulty: 5,
+    question: "When a module's hook_install() exports default config into the dvg_basic_exclusions directory, why must it skip the export when $is_syncing is TRUE and never overwrite a file that already exists there?",
+    hint: "Consider both installing the module via drush cim on another environment and a tenant that already committed a custom override.",
+    answers: [
+      { text: "To avoid writing files mid-config-import and avoid clobbering an existing tenant override in Git.", correct: true },
+      { text: "Because $is_syncing means cron is running, where filesystem writes to sync/ throw fatal errors.", correct: false },
+      { text: "Because overwriting an existing YAML file changes its UUID and then deletes all nodes of that bundle.", correct: false }
+    ],
+    explanationShort: "Skipping when $is_syncing prevents side-effect writes during config:import, and skipping existing files protects any per-site override a project already committed to dvg_exclusions.",
+    explanationLong: "hook_install() runs in two very different contexts: during initial rollout via an update hook (where writing the default YAML into the path configured on config_split.config_split.dvg_basic_exclusions saves manual boilerplate), and during drush cim on downstream environments ($is_syncing === TRUE) or on a tenant that already placed an override file there. Guarding both conditions keeps imports pure and preserves tenant customizations."
   }
 ];

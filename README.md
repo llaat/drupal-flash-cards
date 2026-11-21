@@ -13,7 +13,7 @@ Progress is saved automatically in your browser's `localStorage` under a single 
 
 ## Categories
 
-Every question belongs to one category (currently **Drupal concepts**). The start screen lists each category with an On/Off toggle:
+Every question belongs to one category (**Drupal concepts** or **DvO (Drupal voor Overheden)**). The start screen lists each category with an On/Off toggle:
 
 - All categories are **on by default**, including any added later.
 - You only get questions from categories that are on.
@@ -63,13 +63,21 @@ Write questions that test **architectural judgment and reasons**, not memorized 
 
 ### Category
 
-Every card needs a `category` string, for example `"Drupal concepts"`. Using a new category name automatically adds a toggle for it on the start screen (on by default). Tags describe the topic of a card; the category decides which group of cards the player can switch on or off.
+Every card needs a `category` string, such as `"Drupal concepts"` or `"DvO (Drupal voor Overheden)"`. Using a new category name automatically adds a toggle for it on the start screen (on by default). Every category must include at least **5 difficulty-1 questions** so a new player who switches on only that category can draw a full round at score `0`. Tags describe the topic of a card; the category decides which group of cards the player can switch on or off.
+
+### DvO authoring notes
+
+When writing cards for `"DvO (Drupal voor Overheden)"`:
+
+- Test **platform architecture and engineering judgment** (multi-repo boundaries, `dvg_basic` vs `dvg_basic_exclusions`, `DvO Features` vs `DvgSettings`, subsites, Toptasks inheritance vs DDS / NL Design System SDC base themes, CSS specificity with `:where()`).
+- Keep questions generic to the platform: name real DvO packages and subsystems (`dvo_dds`, `toptasks_base_theme`, `io_dvg`, `dvg_subsite`), avoid Jira ticket numbers, and avoid trivia tied to a single municipality.
 
 ### Allowed tags
 
 Every card needs one or more tags from this fixed list:
 
-`Caching`, `Plugins`, `Routing`, `Services`, `Entities`, `Config`, `Forms`, `Security`, `Render API`, `Database`, `Updates`, `Queues`, `Testing`, `Drupal 11`
+- **Core Drupal tags:** `Caching`, `Plugins`, `Routing`, `Services`, `Entities`, `Config`, `Forms`, `Security`, `Render API`, `Database`, `Updates`, `Queues`, `Testing`, `Drupal 11`
+- **DvO tags:** `DvO Platform`, `DvO Features`, `DvgSettings`, `Subsites`, `Themes`, `DDS`, `DvO Best practices`
 
 ### Card template
 

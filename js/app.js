@@ -19,7 +19,14 @@
     "Updates",
     "Queues",
     "Testing",
-    "Drupal 11"
+    "Drupal 11",
+    "DvO Platform",
+    "DvO Features",
+    "DvgSettings",
+    "Subsites",
+    "Themes",
+    "DDS",
+    "DvO Best practices"
   ];
 
   var DIFFICULTY_TIERS = [
@@ -182,6 +189,8 @@
 
     var seenIds = {};
     var levelOneCount = 0;
+    var seenCategories = [];
+    var categoryLevelOneCounts = {};
 
     for (var i = 0; i < cards.length; i++) {
       var card = cards[i];
@@ -229,6 +238,14 @@
 
       if (typeof card.category !== "string" || !card.category.trim()) {
         errors.push(label + " is missing a category.");
+      } else {
+        if (seenCategories.indexOf(card.category) === -1) {
+          seenCategories.push(card.category);
+          categoryLevelOneCounts[card.category] = 0;
+        }
+        if (card.difficulty === 1) {
+          categoryLevelOneCounts[card.category] += 1;
+        }
       }
 
       if (typeof card.question !== "string" || !card.question.trim()) {
@@ -269,6 +286,15 @@
       errors.push(
         "Deck needs at least " + ROUND_SIZE + " difficulty-1 questions so a new player can draw a full round."
       );
+    }
+
+    for (var c = 0; c < seenCategories.length; c++) {
+      var catName = seenCategories[c];
+      if (categoryLevelOneCounts[catName] < ROUND_SIZE) {
+        errors.push(
+          "Category '" + catName + "' needs at least " + ROUND_SIZE + " difficulty-1 questions so a new player can draw a full round."
+        );
+      }
     }
 
     return errors;

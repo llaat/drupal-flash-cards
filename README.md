@@ -49,6 +49,15 @@ Easier questions stay in the pool, while weights favor questions near that categ
 
 Because the 5 cards in a round are drawn when the round begins, crossing a threshold mid-round takes effect on the **next** round (and is called out per category on the round summary screen).
 
+## Settings
+
+**Settings** on the start screen opens a panel from the right. It has one switch:
+
+- **Use score to unlock more difficult tiers** (the default). Each category climbs the ladder above, and only questions up to that category's unlocked level are asked.
+- **Unlock all difficulties.** Every difficulty can be asked, and scores stay frozen exactly where they are. The ladder becomes five On/Off tier toggles: questions in a tier that is off are not asked. At least one tier must stay on. Switching back to score mode continues from the frozen scores.
+
+Seen questions and right or wrong answers are still recorded in both modes, so repeats stay rare and missed questions still come up more often. Resetting progress clears scores and history but keeps this setting, the tier toggles, and your category choices.
+
 Saves from before per-category scoring had one shared score. On first load, that score is copied to each category you had already answered questions in; other categories start at `0`.
 
 ## Adding a question

@@ -73,11 +73,21 @@
     answered: false,
     hintOpen: false,
     roundResults: [],
-    roundStartScores: {} // category name -> score when the round began
+    roundStartScores: {}, // category name -> score when the round began
+    settingsOpen: false
   };
 
   var els = {
+    appShell: document.getElementById("app-shell"),
     headerScore: document.getElementById("header-score"),
+    headerScoreNote: document.getElementById("header-score-note"),
+    btnSettings: document.getElementById("btn-settings"),
+    settingsBackdrop: document.getElementById("settings-backdrop"),
+    settingsPanel: document.getElementById("settings-panel"),
+    btnSettingsClose: document.getElementById("btn-settings-close"),
+    btnUnlockAll: document.getElementById("btn-unlock-all"),
+    modeLabelScore: document.getElementById("mode-label-score"),
+    modeLabelUnlock: document.getElementById("mode-label-unlock"),
     validationBanner: document.getElementById("validation-banner"),
 
     screenStart: document.getElementById("screen-start"),
@@ -85,8 +95,12 @@
     screenSummary: document.getElementById("screen-summary"),
 
     startScore: document.getElementById("start-score"),
+    startScoreCaption: document.getElementById("start-score-caption"),
     startPool: document.getElementById("start-pool"),
     startPoolCount: document.getElementById("start-pool-count"),
+    ladderSteps: document.getElementById("ladder-steps"),
+    ladderCaption: document.getElementById("ladder-caption"),
+    levelMessage: document.getElementById("level-message"),
     categoryList: document.getElementById("category-list"),
     categoryMessage: document.getElementById("category-message"),
     btnStartRound: document.getElementById("btn-start-round"),
@@ -129,7 +143,12 @@
       recentIds: [],
       // Categories the player switched off. Storing the "off" list means every
       // category, including ones added later, is on by default.
-      disabledCategories: []
+      disabledCategories: [],
+      // Practice mode: every difficulty is available and scores stay frozen.
+      unlockAll: false,
+      // Difficulty tiers switched off while unlockAll is on. Storing the "off"
+      // list means every tier is on by default.
+      disabledLevels: []
     };
   }
 
@@ -140,11 +159,11 @@
         return defaultState();
       }
       var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object") {
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
         return defaultState();
       }
       var scores = {};
-      if (parsed.scores && typeof parsed.scores === "object") {
+      if (parsed.scores && typeof parsed.scores === "object" && !Array.isArray(parsed.scores)) {
         Object.keys(parsed.scores).forEach(function (name) {
           var value = parsed.scores[name];
           if (typeof value === "number" && isFinite(value)) {
@@ -156,21 +175,49 @@
       var legacyScore = !parsed.scores && typeof parsed.score === "number" && isFinite(parsed.score)
         ? Math.max(0, Math.floor(parsed.score))
         : 0;
-      var lastOutcomes = parsed.lastOutcomes && typeof parsed.lastOutcomes === "object"
-        ? parsed.lastOutcomes
-        : {};
+      var lastOutcomes = {};
+      if (parsed.lastOutcomes && typeof parsed.lastOutcomes === "object" && !Array.isArray(parsed.lastOutcomes)) {
+        Object.keys(parsed.lastOutcomes).forEach(function (id) {
+          var outcome = parsed.lastOutcomes[id];
+          if (outcome === "correct" || outcome === "wrong") {
+            lastOutcomes[id] = outcome;
+          }
+        });
+      }
       var recentIds = Array.isArray(parsed.recentIds)
         ? parsed.recentIds.filter(function (id) { return typeof id === "string"; }).slice(-RECENT_HISTORY_LIMIT)
         : [];
-      var disabledCategories = Array.isArray(parsed.disabledCategories)
-        ? parsed.disabledCategories.filter(function (name) { return typeof name === "string"; })
-        : [];
+      var disabledCategories = [];
+      if (Array.isArray(parsed.disabledCategories)) {
+        parsed.disabledCategories.forEach(function (name) {
+          if (typeof name === "string" && disabledCategories.indexOf(name) === -1) {
+            disabledCategories.push(name);
+          }
+        });
+      }
+      var disabledLevels = [];
+      if (Array.isArray(parsed.disabledLevels)) {
+        parsed.disabledLevels.forEach(function (level) {
+          if (
+            typeof level === "number" &&
+            isFinite(level) &&
+            Math.floor(level) === level &&
+            level >= 1 &&
+            level <= 5 &&
+            disabledLevels.indexOf(level) === -1
+          ) {
+            disabledLevels.push(level);
+          }
+        });
+      }
       return {
         scores: scores,
         legacyScore: legacyScore,
         lastOutcomes: lastOutcomes,
         recentIds: recentIds,
-        disabledCategories: disabledCategories
+        disabledCategories: disabledCategories,
+        unlockAll: parsed.unlockAll === true,
+        disabledLevels: disabledLevels
       };
     } catch (err) {
       return defaultState();
@@ -378,14 +425,19 @@
   }
 
   function computeCardWeight(card, ceiling) {
-    var distanceFromCeiling = ceiling - card.difficulty;
-    var ceilingWeight = 0.85;
-    if (distanceFromCeiling === 0) {
-      ceilingWeight = 3.0;
-    } else if (distanceFromCeiling === 1) {
-      ceilingWeight = 1.9;
-    } else if (distanceFromCeiling === 2) {
-      ceilingWeight = 1.25;
+    // In practice mode every enabled tier is equally "at the ceiling", so a
+    // neutral weight keeps level 5 from crowding out the easier cards.
+    var ceilingWeight = 1;
+    if (!persisted.unlockAll) {
+      var distanceFromCeiling = ceiling - card.difficulty;
+      ceilingWeight = 0.85;
+      if (distanceFromCeiling === 0) {
+        ceilingWeight = 3.0;
+      } else if (distanceFromCeiling === 1) {
+        ceilingWeight = 1.9;
+      } else if (distanceFromCeiling === 2) {
+        ceilingWeight = 1.25;
+      }
     }
 
     var outcome = persisted.lastOutcomes[card.id];
@@ -472,12 +524,57 @@
     saveState();
   }
 
+  function isLevelEnabled(level) {
+    return persisted.disabledLevels.indexOf(level) === -1;
+  }
+
+  function enabledLevels() {
+    var levels = [];
+    for (var i = 0; i < DIFFICULTY_TIERS.length; i++) {
+      var level = DIFFICULTY_TIERS[i].level;
+      if (isLevelEnabled(level)) {
+        levels.push(level);
+      }
+    }
+    return levels;
+  }
+
+  function setLevelEnabled(level, enabled) {
+    var index = persisted.disabledLevels.indexOf(level);
+    if (enabled && index !== -1) {
+      persisted.disabledLevels.splice(index, 1);
+    } else if (!enabled && index === -1) {
+      persisted.disabledLevels.push(level);
+    }
+    saveState();
+  }
+
+  function setUnlockAll(on) {
+    if (persisted.unlockAll === on) {
+      return;
+    }
+    persisted.unlockAll = on;
+    saveState();
+    updateHeaderStatus();
+    els.startScore.textContent = String(totalScore());
+    els.startScoreCaption.textContent = persisted.unlockAll
+      ? "Paused while all difficulties are unlocked"
+      : "Sum of your category scores";
+    renderStartSelection();
+  }
+
   // Cards the player can actually be asked right now: in a category that is
-  // switched on and inside that category's own difficulty ceiling.
+  // switched on, and either inside that category's difficulty ceiling or, in
+  // practice mode, in a difficulty tier that is switched on.
   function availableCards() {
     return deck.filter(function (card) {
-      return isCategoryEnabled(card.category) &&
-        card.difficulty <= tierForCategory(card.category).level;
+      if (!isCategoryEnabled(card.category)) {
+        return false;
+      }
+      if (persisted.unlockAll) {
+        return isLevelEnabled(card.difficulty);
+      }
+      return card.difficulty <= tierForCategory(card.category).level;
     });
   }
 
@@ -522,6 +619,10 @@
 
   function showScreen(screenName) {
     session.screen = screenName;
+    if (screenName !== "start" && isSettingsOpen()) {
+      closeSettings(false);
+    }
+    els.btnSettings.hidden = screenName !== "start";
     els.screenStart.hidden = screenName !== "start";
     els.screenQuestion.hidden = screenName !== "question";
     els.screenSummary.hidden = screenName !== "summary";
@@ -529,10 +630,14 @@
 
   function updateHeaderStatus() {
     els.headerScore.textContent = String(totalScore());
+    els.headerScoreNote.hidden = !persisted.unlockAll;
   }
 
   function categoryProgressText(name) {
     var score = scoreFor(name);
+    if (persisted.unlockAll) {
+      return "Score " + score + " (paused)";
+    }
     var tier = tierForScore(score);
     var text = "Score " + score + " \u00b7 " + tier.label;
     if (tier.level < 5) {
@@ -614,23 +719,64 @@
         "of " + selectedTotal + " questions in the selected categories";
     }
 
-    var message = "";
+    var categoryMessage = "";
+    var levelMessage = "";
     if (deckValid) {
       if (enabledCategoryNames().length === 0) {
-        message = "Turn on at least one category to start.";
+        categoryMessage = "Turn on at least one category to start.";
+      } else if (persisted.unlockAll && enabledLevels().length === 0) {
+        levelMessage = "Turn on at least one difficulty tier to start.";
       } else if (availableCount === 0) {
-        message = "The selected categories have no questions at your current level yet. Turn on another category.";
+        levelMessage = persisted.unlockAll
+          ? "The selected categories have no questions in the tiers that are on."
+          : "";
+        categoryMessage = persisted.unlockAll
+          ? ""
+          : "The selected categories have no questions at your current level yet. Turn on another category.";
       }
     }
-    els.categoryMessage.textContent = message;
-    els.categoryMessage.hidden = message === "";
+    els.categoryMessage.textContent = categoryMessage;
+    els.categoryMessage.hidden = categoryMessage === "";
+    els.levelMessage.textContent = levelMessage;
+    els.levelMessage.hidden = levelMessage === "";
 
+    renderLadder();
+    renderModeSwitch();
     els.btnStartRound.disabled = !canStartRound();
+  }
+
+  function renderLadder() {
+    var tierButtons = els.ladderSteps.querySelectorAll("button[data-level]");
+    for (var i = 0; i < tierButtons.length; i++) {
+      var btn = tierButtons[i];
+      var level = Number(btn.getAttribute("data-level"));
+      var on = isLevelEnabled(level);
+      btn.disabled = !persisted.unlockAll;
+      btn.classList.toggle("is-on", persisted.unlockAll && on);
+      if (persisted.unlockAll) {
+        btn.setAttribute("aria-label", "Level " + level);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      } else {
+        btn.removeAttribute("aria-label");
+        btn.removeAttribute("aria-pressed");
+      }
+      btn.querySelector(".tier-range").hidden = persisted.unlockAll;
+      btn.querySelector(".tier-score-label").hidden = persisted.unlockAll;
+      btn.querySelector(".tier-practice-label").hidden = !persisted.unlockAll;
+      btn.querySelector(".tier-state").hidden = !persisted.unlockAll;
+      btn.querySelector(".tier-state").textContent = on ? "On" : "Off";
+    }
+    els.ladderCaption.textContent = persisted.unlockAll
+      ? "Turn tiers on or off. Questions in tiers that are off are not asked."
+      : "Each category climbs on its own score: +1 right, \u22121 wrong (min 0)";
   }
 
   function renderStartScreen() {
     updateHeaderStatus();
     els.startScore.textContent = String(totalScore());
+    els.startScoreCaption.textContent = persisted.unlockAll
+      ? "Paused while all difficulties are unlocked"
+      : "Sum of your category scores";
     renderStartSelection();
     els.resetConfirmRow.hidden = true;
     showScreen("start");
@@ -785,8 +931,11 @@
     }
 
     var previousScore = scoreFor(card.category);
-    var newScore = isCorrect ? previousScore + 1 : Math.max(0, previousScore - 1);
-    persisted.scores[card.category] = newScore;
+    var newScore = previousScore;
+    if (!persisted.unlockAll) {
+      newScore = isCorrect ? previousScore + 1 : Math.max(0, previousScore - 1);
+      persisted.scores[card.category] = newScore;
+    }
 
     persisted.lastOutcomes[card.id] = isCorrect ? "correct" : "wrong";
     persisted.recentIds.push(card.id);
@@ -807,15 +956,20 @@
 
     if (isCorrect) {
       els.feedbackVerdict.textContent = "Correct";
-      els.feedbackDelta.textContent = "+1 " + card.category + " score (now " + newScore + ")";
       els.feedbackExplanation.textContent = card.explanationShort;
     } else {
       els.feedbackVerdict.textContent = "Not quite";
+      els.feedbackExplanation.textContent = card.explanationLong;
+    }
+    if (persisted.unlockAll) {
+      els.feedbackDelta.textContent = "Practice mode: score not tracked";
+    } else if (isCorrect) {
+      els.feedbackDelta.textContent = "+1 " + card.category + " score (now " + newScore + ")";
+    } else {
       els.feedbackDelta.textContent =
         previousScore > 0
           ? "\u22121 " + card.category + " score (now " + newScore + ")"
           : card.category + " score stays at 0";
-      els.feedbackExplanation.textContent = card.explanationLong;
     }
 
     var isLastQuestion = session.roundIndex >= session.roundCards.length - 1;
@@ -869,33 +1023,42 @@
     }
 
     els.summaryCorrect.textContent = correctCount + " / " + totalCount;
-    els.summaryDelta.textContent = (netDelta > 0 ? "+" : netDelta < 0 ? "\u2212" : "") + Math.abs(netDelta);
-    els.summaryDeltaCaption.textContent =
-      "From " + startTotal + " to " + endTotal;
     els.summaryScore.textContent = String(endTotal);
+    els.summaryDelta.classList.toggle("is-text", persisted.unlockAll);
 
-    var ceilingNotes = [];
-    var anyRose = false;
-    categories.forEach(function (name) {
-      var startTier = tierForScore(session.roundStartScores[name] || 0);
-      var endTier = tierForCategory(name);
-      if (endTier.level > startTier.level) {
-        anyRose = true;
-        ceilingNotes.push(
-          name + ": difficulty ceiling rose from " + startTier.label + " to " + endTier.label +
-          ". Harder questions (" + endTier.detail.toLowerCase() + ") now join the next round."
-        );
-      } else if (endTier.level < startTier.level) {
-        ceilingNotes.push(
-          name + ": difficulty ceiling moved from " + startTier.label + " back to " + endTier.label +
-          " so the next round focuses on core concepts before ramping up again."
-        );
-      }
-    });
+    if (persisted.unlockAll) {
+      els.summaryDelta.textContent = "Not tracked";
+      els.summaryDeltaCaption.textContent = "Scores stay where you left them";
+      els.summaryCeilingNote.hidden = true;
+      els.summaryCeilingNote.textContent = "";
+    } else {
+      els.summaryDelta.textContent = (netDelta > 0 ? "+" : netDelta < 0 ? "\u2212" : "") + Math.abs(netDelta);
+      els.summaryDeltaCaption.textContent =
+        "From " + startTotal + " to " + endTotal;
 
-    els.summaryCeilingNote.hidden = ceilingNotes.length === 0;
-    els.summaryCeilingNote.classList.toggle("is-down", ceilingNotes.length > 0 && !anyRose);
-    els.summaryCeilingNote.textContent = ceilingNotes.join(" ");
+      var ceilingNotes = [];
+      var anyRose = false;
+      categories.forEach(function (name) {
+        var startTier = tierForScore(session.roundStartScores[name] || 0);
+        var endTier = tierForCategory(name);
+        if (endTier.level > startTier.level) {
+          anyRose = true;
+          ceilingNotes.push(
+            name + ": difficulty ceiling rose from " + startTier.label + " to " + endTier.label +
+            ". Harder questions (" + endTier.detail.toLowerCase() + ") now join the next round."
+          );
+        } else if (endTier.level < startTier.level) {
+          ceilingNotes.push(
+            name + ": difficulty ceiling moved from " + startTier.label + " back to " + endTier.label +
+            " so the next round focuses on core concepts before ramping up again."
+          );
+        }
+      });
+
+      els.summaryCeilingNote.hidden = ceilingNotes.length === 0;
+      els.summaryCeilingNote.classList.toggle("is-down", ceilingNotes.length > 0 && !anyRose);
+      els.summaryCeilingNote.textContent = ceilingNotes.join(" ");
+    }
 
     els.summaryRecap.innerHTML = "";
     for (var r = 0; r < session.roundResults.length; r++) {
@@ -936,12 +1099,79 @@
   }
 
   function resetProgress() {
-    // Reset clears score and history but keeps the player's category choices.
+    // Reset clears score and history but keeps category choices and settings.
     var keptDisabledCategories = persisted.disabledCategories;
+    var keptUnlockAll = persisted.unlockAll;
+    var keptDisabledLevels = persisted.disabledLevels.slice();
     persisted = defaultState();
     persisted.disabledCategories = keptDisabledCategories;
+    persisted.unlockAll = keptUnlockAll;
+    persisted.disabledLevels = keptDisabledLevels;
     saveState();
     renderStartScreen();
+  }
+
+  var settingsCloseTimer = 0;
+
+  function isSettingsOpen() {
+    return session.settingsOpen;
+  }
+
+  function renderModeSwitch() {
+    els.btnUnlockAll.setAttribute("aria-checked", persisted.unlockAll ? "true" : "false");
+    els.btnUnlockAll.classList.toggle("is-on", persisted.unlockAll);
+    els.modeLabelScore.classList.toggle("is-active", !persisted.unlockAll);
+    els.modeLabelUnlock.classList.toggle("is-active", persisted.unlockAll);
+  }
+
+  function openSettings() {
+    if (session.settingsOpen) {
+      return;
+    }
+    session.settingsOpen = true;
+    window.clearTimeout(settingsCloseTimer);
+    els.settingsBackdrop.hidden = false;
+    els.settingsPanel.hidden = false;
+    els.settingsPanel.inert = false;
+    els.settingsPanel.setAttribute("aria-hidden", "false");
+    els.appShell.inert = true;
+    els.btnSettings.setAttribute("aria-expanded", "true");
+    document.body.style.overflow = "hidden";
+    // Flush layout so the closed transform is committed before transitioning open.
+    void els.settingsPanel.offsetWidth;
+    els.settingsBackdrop.classList.add("is-open");
+    els.settingsPanel.classList.add("is-open");
+    els.btnSettingsClose.focus();
+  }
+
+  function closeSettings(restoreFocus) {
+    if (!session.settingsOpen && els.settingsPanel.hidden) {
+      return;
+    }
+    session.settingsOpen = false;
+    els.settingsBackdrop.classList.remove("is-open");
+    els.settingsPanel.classList.remove("is-open");
+    els.settingsPanel.setAttribute("aria-hidden", "true");
+    els.settingsPanel.inert = true;
+    els.appShell.inert = false;
+    els.btnSettings.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
+    window.clearTimeout(settingsCloseTimer);
+    var finish = function () {
+      if (session.settingsOpen) {
+        return;
+      }
+      els.settingsBackdrop.hidden = true;
+      els.settingsPanel.hidden = true;
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      finish();
+    } else {
+      settingsCloseTimer = window.setTimeout(finish, 220);
+    }
+    if (restoreFocus !== false) {
+      els.btnSettings.focus();
+    }
   }
 
   function handleKeyDown(event) {
@@ -950,6 +1180,36 @@
     }
 
     var key = event.key;
+
+    if (isSettingsOpen()) {
+      if (key === "Escape") {
+        event.preventDefault();
+        closeSettings();
+        return;
+      }
+      if (key === "Tab") {
+        var focusables = els.settingsPanel.querySelectorAll(
+          'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) {
+          event.preventDefault();
+          return;
+        }
+        var first = focusables[0];
+        var last = focusables[focusables.length - 1];
+        if (!els.settingsPanel.contains(document.activeElement)) {
+          event.preventDefault();
+          (event.shiftKey ? last : first).focus();
+        } else if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
 
     if (session.screen === "question") {
       if (!session.answered) {
@@ -1025,6 +1285,36 @@
     });
     migrateLegacyScore();
     buildCategoryButtons();
+    els.settingsPanel.inert = true;
+
+    var tierButtons = els.ladderSteps.querySelectorAll("button[data-level]");
+    for (var t = 0; t < tierButtons.length; t++) {
+      tierButtons[t].addEventListener("click", function () {
+        if (!persisted.unlockAll) {
+          return;
+        }
+        var level = Number(this.getAttribute("data-level"));
+        setLevelEnabled(level, !isLevelEnabled(level));
+        renderStartSelection();
+      });
+    }
+
+    els.btnSettings.addEventListener("click", openSettings);
+    els.btnSettingsClose.addEventListener("click", function () {
+      closeSettings();
+    });
+    els.settingsBackdrop.addEventListener("click", function () {
+      closeSettings();
+    });
+    els.btnUnlockAll.addEventListener("click", function () {
+      setUnlockAll(!persisted.unlockAll);
+    });
+    els.modeLabelScore.addEventListener("click", function () {
+      setUnlockAll(false);
+    });
+    els.modeLabelUnlock.addEventListener("click", function () {
+      setUnlockAll(true);
+    });
 
     els.btnStartRound.addEventListener("click", startRound);
     els.btnHint.addEventListener("click", toggleHint);

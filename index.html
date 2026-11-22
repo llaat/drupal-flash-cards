@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <div class="app-shell">
+  <div id="app-shell" class="app-shell">
     <header class="top-bar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">D</span>
@@ -29,7 +29,22 @@
         <div class="stat-pill" title="Sum of your category scores (+1 correct, -1 wrong, minimum 0 per category)">
           <span class="stat-label">Total score</span>
           <span class="stat-value" id="header-score">0</span>
+          <span class="stat-note" id="header-score-note" hidden>Paused</span>
         </div>
+        <button
+          type="button"
+          id="btn-settings"
+          class="btn-settings"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-controls="settings-panel"
+        >
+          <svg class="settings-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Settings
+        </button>
       </div>
     </header>
 
@@ -52,7 +67,7 @@
           <div class="overview-box">
             <span class="overview-label">Total Score</span>
             <strong class="overview-number" id="start-score">0</strong>
-            <span class="overview-caption">Sum of your category scores</span>
+            <span class="overview-caption" id="start-score-caption">Sum of your category scores</span>
           </div>
           <div class="overview-box">
             <span class="overview-label">Questions in Pool</span>
@@ -61,18 +76,29 @@
           </div>
         </div>
 
-        <div class="ladder-box" aria-label="Difficulty unlock thresholds">
+        <div class="ladder-box" aria-label="Difficulty tiers">
           <div class="ladder-header">
             <span class="ladder-title">Difficulty ladder</span>
-            <span class="ladder-next">Each category climbs on its own score: +1 right, &minus;1 wrong (min 0)</span>
+            <span class="ladder-next" id="ladder-caption">Each category climbs on its own score: +1 right, &minus;1 wrong (min 0)</span>
           </div>
-          <ol class="ladder-steps" id="ladder-steps">
-            <li data-level="1"><span>0&ndash;9</span><strong>L1</strong></li>
-            <li data-level="2"><span>10&ndash;24</span><strong>L1&ndash;2</strong></li>
-            <li data-level="3"><span>25&ndash;44</span><strong>L1&ndash;3</strong></li>
-            <li data-level="4"><span>45&ndash;69</span><strong>L1&ndash;4</strong></li>
-            <li data-level="5"><span>70+</span><strong>L1&ndash;5</strong></li>
-          </ol>
+          <div class="ladder-steps" id="ladder-steps" role="group" aria-label="Difficulty tiers">
+            <button type="button" class="tier-toggle" data-level="1" disabled>
+              <span class="tier-range">0&ndash;9</span><strong class="tier-score-label">L1</strong><strong class="tier-practice-label" hidden>L1</strong><span class="tier-state" aria-hidden="true" hidden>On</span>
+            </button>
+            <button type="button" class="tier-toggle" data-level="2" disabled>
+              <span class="tier-range">10&ndash;24</span><strong class="tier-score-label">L1&ndash;2</strong><strong class="tier-practice-label" hidden>L2</strong><span class="tier-state" aria-hidden="true" hidden>On</span>
+            </button>
+            <button type="button" class="tier-toggle" data-level="3" disabled>
+              <span class="tier-range">25&ndash;44</span><strong class="tier-score-label">L1&ndash;3</strong><strong class="tier-practice-label" hidden>L3</strong><span class="tier-state" aria-hidden="true" hidden>On</span>
+            </button>
+            <button type="button" class="tier-toggle" data-level="4" disabled>
+              <span class="tier-range">45&ndash;69</span><strong class="tier-score-label">L1&ndash;4</strong><strong class="tier-practice-label" hidden>L4</strong><span class="tier-state" aria-hidden="true" hidden>On</span>
+            </button>
+            <button type="button" class="tier-toggle" data-level="5" disabled>
+              <span class="tier-range">70+</span><strong class="tier-score-label">L1&ndash;5</strong><strong class="tier-practice-label" hidden>L5</strong><span class="tier-state" aria-hidden="true" hidden>On</span>
+            </button>
+          </div>
+          <p id="level-message" class="category-message" role="status" hidden></p>
         </div>
 
         <div class="category-box" aria-label="Question categories">
@@ -195,6 +221,42 @@
       </section>
     </main>
   </div>
+
+  <div id="settings-backdrop" class="settings-backdrop" hidden></div>
+  <aside
+    id="settings-panel"
+    class="settings-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="settings-title"
+    aria-describedby="settings-help"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="settings-header">
+      <h2 id="settings-title" class="settings-title">Settings</h2>
+      <button type="button" id="btn-settings-close" class="btn-settings-close" aria-label="Close settings">&times;</button>
+    </div>
+    <div class="mode-switch-row">
+      <span id="mode-label-score" class="mode-label is-active">Use score to unlock more difficult tiers</span>
+      <button
+        type="button"
+        id="btn-unlock-all"
+        class="mode-switch"
+        role="switch"
+        aria-checked="false"
+        aria-label="Unlock all difficulties"
+        aria-describedby="settings-help"
+      >
+        <span class="switch-knob" aria-hidden="true"></span>
+      </button>
+      <span id="mode-label-unlock" class="mode-label mode-label--right">Unlock all difficulties</span>
+    </div>
+    <p id="settings-help" class="settings-help">
+      With all difficulties unlocked, every tier can be asked and your scores stay frozen.
+      Switch back to pick up scoring where you left off. Turn individual tiers on or off on the start screen.
+    </p>
+  </aside>
 
   <script src="js/questions.js"></script>
   <script src="js/app.js"></script>
